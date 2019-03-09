@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="SplashStyle" parent="android:Theme.DeviceDefault.NoActionBar">
+        <item name="android:windowBackground">@color/the_black</item>
+    </style>
+
+    <style name="AppStyle" parent="android:Theme.DeviceDefault">
+        <item name="android:statusBarColor">@color/the_black</item>
+        <item name="android:windowBackground">@color/the_black</item>
+        <item name="android:navigationBarColor">@color/the_black</item>
+    </style>
+
+</resources>
