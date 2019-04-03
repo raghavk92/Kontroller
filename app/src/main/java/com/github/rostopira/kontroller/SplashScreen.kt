@@ -15,10 +15,14 @@ class SplashScreen: Activity() {
                 arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), 0
             )
         } else {
+
             startActivity<SelectDeviceActivity>()
+
             finish()
         }
     }
+
+
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)

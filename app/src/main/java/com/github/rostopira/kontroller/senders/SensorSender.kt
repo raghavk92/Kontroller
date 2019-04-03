@@ -16,6 +16,7 @@ class SensorSender(hidDevice: BluetoothHidDevice, host: BluetoothDevice): Sender
 
     val absMouseReport = AbsMouseReport()
 
+
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
         Log.d(TAG, "Accuracy changed ${when(accuracy) {
             SensorManager.SENSOR_STATUS_ACCURACY_LOW -> "LOW"
@@ -35,6 +36,7 @@ class SensorSender(hidDevice: BluetoothHidDevice, host: BluetoothDevice): Sender
             absMouseReport.X = pixelsX
             absMouseReport.Y = pixelsY
             hidDevice.sendReport(this.host, 2, absMouseReport.bytes)
+
         } else {
             Log.i("WTF", "No changes")
         }

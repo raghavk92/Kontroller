@@ -8,6 +8,7 @@ inline class MouseReport(
     val bytes: ByteArray = ByteArray(4) {0}
 ) {
 
+
     var leftButton: Boolean
         get() = bytes[0] and 0b1 != 0.toByte()
         set(value) {
