@@ -4,10 +4,41 @@ import android.bluetooth.*
 import android.content.Context
 import android.os.Build
 import android.util.Log
+import com.github.rostopira.kontroller.reports.FeatureReport
+import javax.security.auth.callback.Callback
 
 
 @Suppress("MemberVisibilityCanBePrivate")
 object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.ServiceListener {
+
+    val featureReport = FeatureReport()
+
+
+
+    override fun onSetReport(device: BluetoothDevice?, type: Byte, id: Byte, data: ByteArray?) {
+        Log.i("setfirst","setfirst")
+        super.onSetReport(device, type, id, data)
+        Log.i("setreport","Haha $device and $type and $id and $data")
+
+    }
+    override fun onGetReport(device: BluetoothDevice?, type: Byte, id: Byte, bufferSize: Int) {
+
+        Log.i("getbefore", "first")
+        super.onGetReport(device, type, id, bufferSize)
+
+        Log.i("get", "second")
+            if (type == BluetoothHidDevice.REPORT_TYPE_FEATURE) {
+                featureReport.wheelResolutionMultiplier = false
+                featureReport.acPanResolutionMultiplier = false
+                Log.i("bakar","$btHid")
+
+                 var wasrs=btHid?.replyReport(device, type, FeatureReport.ID, featureReport.bytes)
+                Log.i("replysuccess flag ",wasrs.toString())
+            }
+
+
+    }
+
 
     val btAdapter by lazy { BluetoothAdapter.getDefaultAdapter()!! }
     var btHid: BluetoothHidDevice? = null
@@ -50,10 +81,11 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
         val btHid = proxy as? BluetoothHidDevice
         if (btHid == null) {
             Log.wtf(TAG, "WTF? Proxy received but it's not BluetoothHidDevice")
+
             return
         }
         this.btHid = btHid
-        var aa= btHid.registerApp(sdpRecord, null, qosOut, {it.run()}, this)//--
+        btHid.registerApp(sdpRecord, null, qosOut, {it.run()}, this)//--
         btAdapter.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE, 300000)
 
 
@@ -74,11 +106,13 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
             BluetoothProfile.STATE_CONNECTED -> "CONNECTED"
             BluetoothProfile.STATE_DISCONNECTING -> "DISCONNECTING"
             BluetoothProfile.STATE_DISCONNECTED -> "DISCONNECTED"
+
             else -> state.toString()
         }}")
         if (state == BluetoothProfile.STATE_CONNECTED) {
             if (device != null) {
                 hostDevice = device
+
                 deviceListener?.invoke(btHid!!, device)
                 deviceListener = null
             } else {
@@ -100,7 +134,7 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
             "Mobile BController",
             "bla",
             BluetoothHidDevice.SUBCLASS1_COMBO,
-            MOUSE_RELATIVE2
+            MOUSE_RELATIVE_WITH_SCROLL
         )
     }
     //BluetoothHidDevice.SUBCLASS1_COMBO
@@ -127,6 +161,8 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
         0xc0.toByte(),                //    END_COLLECTION
         0xc0.toByte() //                END_COLLECTION
     )// End
+
+
 
 
     private val MOUSE_RELATIVE1 = byteArrayOf(
@@ -160,7 +196,7 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
         0xc0.toByte()                                //END_COLLECTION
     )
 
-    private val MOUSE_RELATIVE2 = byteArrayOf(
+    private val MOUSE_RELATIVE_WITHOUT_SCROLL = byteArrayOf(
         //MOUSE TLC
         0x05.toByte(), 0x01.toByte(),                         // USAGE_PAGE (Generic Desktop)
         0x09.toByte(), 0x02.toByte(),                         // USAGE (Mouse)
@@ -189,6 +225,155 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
         0x81.toByte(), 0x06.toByte(),                         //     INPUT (Data,Var,Rel)
         0xc0.toByte(),                               //   END_COLLECTION
         0xc0.toByte()                                //END_COLLECTION
+    )
+
+
+    private val MOUSE_RELATIVE_WITH_SCROLL = byteArrayOf(
+        //MOUSE TLC
+        0x05.toByte(), 0x01.toByte(),                         // USAGE_PAGE (Generic Desktop)
+        0x09.toByte(), 0x02.toByte(),                         // USAGE (Mouse)
+
+        0xa1.toByte(), 0x01.toByte(),                         // COLLECTION (Application)
+        0x05.toByte(), 0x01.toByte(),                         // USAGE_PAGE (Generic Desktop)
+        0x09.toByte(), 0x02.toByte(),                         // USAGE (Mouse)
+        0xa1.toByte(), 0x02.toByte(),        //       COLLECTION (Logical)
+
+        0x85.toByte(), 0x04.toByte(),               //   REPORT_ID (Mouse)
+        0x09.toByte(), 0x01.toByte(),                         //   USAGE (Pointer)
+        0xa1.toByte(), 0x00.toByte(),                         //   COLLECTION (Physical)
+        0x05.toByte(), 0x09.toByte(),                         //     USAGE_PAGE (Button)
+        0x19.toByte(), 0x01.toByte(),                         //     USAGE_MINIMUM (Button 1)
+        0x29.toByte(), 0x02.toByte(),                         //     USAGE_MAXIMUM (Button 2)
+        0x15.toByte(), 0x00.toByte(),                         //     LOGICAL_MINIMUM (0)
+        0x25.toByte(), 0x01.toByte(),                         //     LOGICAL_MAXIMUM (1)
+        0x75.toByte(), 0x01.toByte(),                         //     REPORT_SIZE (1)
+        0x95.toByte(), 0x02.toByte(),                         //     REPORT_COUNT (2)
+        0x81.toByte(), 0x02.toByte(),                         //     INPUT (Data,Var,Abs)
+        0x95.toByte(), 0x01.toByte(),                         //     REPORT_COUNT (1)
+        0x75.toByte(), 0x06.toByte(),                         //     REPORT_SIZE (6)
+        0x81.toByte(), 0x03.toByte(),                         //     INPUT (Cnst,Var,Abs)
+        0x05.toByte(), 0x01.toByte(),                         //     USAGE_PAGE (Generic Desktop)
+        0x09.toByte(), 0x30.toByte(),                         //     USAGE (X)
+        0x09.toByte(), 0x31.toByte(),                         //     USAGE (Y)
+        0x16.toByte(), 0x01.toByte(),0xf8.toByte(),                         //     LOGICAL_MINIMUM (-2047)
+        0x26.toByte(), 0xff.toByte(),0x07.toByte(),                         //     LOGICAL_MAXIMUM (2047)
+        0x75.toByte(), 0x10.toByte(),                         //     REPORT_SIZE (16)
+        0x95.toByte(), 0x02.toByte(),                         //     REPORT_COUNT (2)
+        0x81.toByte(), 0x06.toByte(),                         //     INPUT (Data,Var,Rel)
+
+        0xa1.toByte(), 0x02.toByte(),        //       COLLECTION (Logical)
+        0x85.toByte(), 0x06.toByte(),               //   REPORT_ID (Feature)
+        0x09.toByte(), 0x48.toByte(),        //         USAGE (Resolution Multiplier)
+
+        0x15.toByte(), 0x00.toByte(),        //         LOGICAL_MINIMUM (0)
+        0x25.toByte(), 0x01.toByte(),        //         LOGICAL_MAXIMUM (1)
+        0x35.toByte(), 0x01.toByte(),        //         PHYSICAL_MINIMUM (1)
+        0x45.toByte(), 0x04.toByte(),        //         PHYSICAL_MAXIMUM (4)
+        0x75.toByte(), 0x02.toByte(),        //         REPORT_SIZE (2)
+        0x95.toByte(), 0x01.toByte(),        //         REPORT_COUNT (1)
+
+        0xb1.toByte(), 0x02.toByte(),        //         FEATURE (Data,Var,Abs)
+
+
+        0x85.toByte(), 0x04.toByte(),               //   REPORT_ID (Mouse)
+        //0x05.toByte(), 0x01.toByte(),                         //     USAGE_PAGE (Generic Desktop)
+        0x09.toByte(), 0x38.toByte(),        //         USAGE (Wheel)
+
+        0x15.toByte(), 0x81.toByte(),        //         LOGICAL_MINIMUM (-127)
+        0x25.toByte(), 0x7f.toByte(),        //         LOGICAL_MAXIMUM (127)
+        0x35.toByte(), 0x00.toByte(),        //         PHYSICAL_MINIMUM (0)        - reset physical
+        0x45.toByte(), 0x00.toByte(),        //         PHYSICAL_MAXIMUM (0)
+        0x75.toByte(), 0x08.toByte(),        //         REPORT_SIZE (8)
+        0x95.toByte(), 0x01.toByte(),                         //     REPORT_COUNT (1)
+        0x81.toByte(), 0x06.toByte(),                         //     INPUT (Data,Var,Rel)
+        0xc0.toByte(),              //       END_COLLECTION
+
+        0xa1.toByte(), 0x02.toByte(),        //       COLLECTION (Logical)
+        0x85.toByte(), 0x06.toByte(),               //   REPORT_ID (Feature)
+        0x09.toByte(), 0x48.toByte(),        //         USAGE (Resolution Multiplier)
+
+        0x15.toByte(), 0x00.toByte(),        //         LOGICAL_MINIMUM (0)
+        0x25.toByte(), 0x01.toByte(),        //         LOGICAL_MAXIMUM (1)
+        0x35.toByte(), 0x01.toByte(),        //         PHYSICAL_MINIMUM (1)
+        0x45.toByte(), 0x04.toByte(),        //         PHYSICAL_MAXIMUM (4)
+        0x75.toByte(), 0x02.toByte(),        //         REPORT_SIZE (2)
+        0x95.toByte(), 0x01.toByte(),        //         REPORT_COUNT (1)
+
+        0xb1.toByte(), 0x02.toByte(),        //         FEATURE (Data,Var,Abs)
+
+        0x35.toByte(), 0x00.toByte(),        //         PHYSICAL_MINIMUM (0)        - reset physical
+        0x45.toByte(), 0x00.toByte(),        //         PHYSICAL_MAXIMUM (0)
+        0x75.toByte(), 0x04.toByte(),        //         REPORT_SIZE (4)
+        0xb1.toByte(), 0x03.toByte(),        //         FEATURE (Cnst,Var,Abs)
+
+
+
+        0x85.toByte(), 0x04.toByte(),               //   REPORT_ID (Mouse)
+        0x05.toByte(), 0x0c.toByte(),        //         USAGE_PAGE (Consumer Devices)
+        0x0a.toByte(), 0x38.toByte(), 0x02.toByte(),  //         USAGE (AC Pan)
+
+        0x15.toByte(), 0x81.toByte(),        //         LOGICAL_MINIMUM (-127)
+        0x25.toByte(), 0x7f.toByte(),        //         LOGICAL_MAXIMUM (127)
+        0x75.toByte(), 0x08.toByte(),        //         REPORT_SIZE (8)
+        0x95.toByte(), 0x01.toByte(),        //         REPORT_COUNT (1)
+        0x81.toByte(), 0x06.toByte(),        //         INPUT (Data,Var,Rel)
+        0xc0.toByte(),              //       END_COLLECTION
+        0xc0.toByte(),              //       END_COLLECTION
+
+        0xc0.toByte(),                               //   END_COLLECTION
+        0xc0.toByte()                                //END_COLLECTION
+
+    )
+
+
+    private val MOUSE_RELATIVE_WITH_SCROLL_NOTSMOOTH = byteArrayOf(
+        //MOUSE TLC
+        0x05.toByte(), 0x01.toByte(),                         // USAGE_PAGE (Generic Desktop)
+        0x09.toByte(), 0x02.toByte(),                         // USAGE (Mouse)
+        0xa1.toByte(), 0x01.toByte(),                         // COLLECTION (Application)
+        0x85.toByte(), 0x04.toByte(),                         //   REPORT_ID (Mouse)
+        0x09.toByte(), 0x01.toByte(),                         //   USAGE (Pointer)
+        0xa1.toByte(), 0x00.toByte(),                         //   COLLECTION (Physical)
+        0x05.toByte(), 0x09.toByte(),                         //     USAGE_PAGE (Button)
+        0x19.toByte(), 0x01.toByte(),                         //     USAGE_MINIMUM (Button 1)
+        0x29.toByte(), 0x02.toByte(),                         //     USAGE_MAXIMUM (Button 2)
+        0x15.toByte(), 0x00.toByte(),                         //     LOGICAL_MINIMUM (0)
+        0x25.toByte(), 0x01.toByte(),                         //     LOGICAL_MAXIMUM (1)
+        0x75.toByte(), 0x01.toByte(),                         //     REPORT_SIZE (1)
+        0x95.toByte(), 0x02.toByte(),                         //     REPORT_COUNT (2)
+        0x81.toByte(), 0x02.toByte(),                         //     INPUT (Data,Var,Abs)
+        0x95.toByte(), 0x01.toByte(),                         //     REPORT_COUNT (1)
+        0x75.toByte(), 0x06.toByte(),                         //     REPORT_SIZE (6)
+        0x81.toByte(), 0x03.toByte(),                         //     INPUT (Cnst,Var,Abs)
+        0x05.toByte(), 0x01.toByte(),                         //     USAGE_PAGE (Generic Desktop)
+        0x09.toByte(), 0x30.toByte(),                         //     USAGE (X)
+        0x09.toByte(), 0x31.toByte(),                         //     USAGE (Y)
+        0x16.toByte(), 0x01.toByte(),0xf8.toByte(),           //     LOGICAL_MINIMUM (-2047)
+        0x26.toByte(), 0xff.toByte(),0x07.toByte(),           //     LOGICAL_MAXIMUM (2047)
+        0x75.toByte(), 0x10.toByte(),                         //     REPORT_SIZE (16)
+        0x95.toByte(), 0x02.toByte(),                         //     REPORT_COUNT (2)
+        0x81.toByte(), 0x06.toByte(),                         //     INPUT (Data,Var,Rel)
+        0x05.toByte(), 0x01.toByte(),                         //     USAGE_PAGE (Generic Desktop)
+        0x09.toByte(), 0x38.toByte(),                        //      USAGE (Wheel)
+        0x15.toByte(), 0x81.toByte(),                       //       LOGICAL_MINIMUM (-127)
+        0x25.toByte(), 0x7f.toByte(),                       //       LOGICAL_MAXIMUM (127)
+        0x35.toByte(), 0x00.toByte(),                     //         PHYSICAL_MINIMUM (0)        - reset physical
+        0x45.toByte(), 0x00.toByte(),                     //         PHYSICAL_MAXIMUM (0)
+        0x75.toByte(), 0x08.toByte(),                     //         REPORT_SIZE (8)
+        0x95.toByte(), 0x01.toByte(),                         //     REPORT_COUNT (1)
+        0x81.toByte(), 0x06.toByte(),                         //     INPUT (Data,Var,Rel)
+
+
+        0x05.toByte(), 0x0c.toByte(),                     //         USAGE_PAGE (Consumer Devices)
+        0x0a.toByte(), 0x38.toByte(), 0x02.toByte(),      //         USAGE (AC Pan)
+        0x15.toByte(), 0x81.toByte(),                     //         LOGICAL_MINIMUM (-127)
+        0x25.toByte(), 0x7f.toByte(),                     //         LOGICAL_MAXIMUM (127)
+        0x75.toByte(), 0x08.toByte(),                     //         REPORT_SIZE (8)
+        0x95.toByte(), 0x01.toByte(),                     //         REPORT_COUNT (1)
+        0x81.toByte(), 0x06.toByte(),                     //         INPUT (Data,Var,Rel)
+
+        0xc0.toByte(),                                        //   END_COLLECTION
+        0xc0.toByte()                                          //END_COLLECTION
     )
 
 //    private val MOUSE_RELATIVE = byteArrayOf(

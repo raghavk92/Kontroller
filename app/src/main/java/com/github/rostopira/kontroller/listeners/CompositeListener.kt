@@ -1,4 +1,4 @@
-package com.github.rostopira.kontroller.Listeners
+package com.github.rostopira.kontroller.listeners
 
 import android.view.MotionEvent
 import android.view.View

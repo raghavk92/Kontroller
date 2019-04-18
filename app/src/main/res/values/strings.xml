@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Kontroller</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_keyboard_title">Keyboard Toggle</string>
 </resources>

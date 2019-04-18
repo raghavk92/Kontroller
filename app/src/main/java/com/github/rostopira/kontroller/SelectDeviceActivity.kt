@@ -2,27 +2,34 @@ package com.github.rostopira.kontroller
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
-import android.view.GestureDetector
-import android.view.MotionEvent
-import android.view.View
-import com.github.rostopira.kontroller.Listeners.CompositeListener
-import com.github.rostopira.kontroller.Listeners.GestureDetectListener
+import android.view.*
+import android.view.inputmethod.InputMethodManager
+import android.widget.Button
+import com.github.rostopira.kontroller.listeners.CompositeListener
+import com.github.rostopira.kontroller.listeners.GestureDetectListener
 import com.github.rostopira.kontroller.senders.RelativeMouseSender
 import com.github.rostopira.kontroller.senders.SensorSender
-import com.github.rostopira.kontroller.Listeners.ViewListener
+import com.github.rostopira.kontroller.listeners.ViewListener
 import org.jetbrains.anko.*
-import java.util.*
-import kotlin.concurrent.schedule
+import com.github.rostopira.kontroller.extraLibraries.CustomGestureDetector
+
+
+
+
+
+
 
 class SelectDeviceActivity: Activity() {
 
     private lateinit var linearLayout: _LinearLayout
     private var sender: SensorSender? = null
-    private var  viewTouchListener : ViewListener? = null
+    //private var  viewTouchListener : ViewListener? = null
 
     private var  rMouseSender : RelativeMouseSender? = null
 
@@ -32,6 +39,16 @@ class SelectDeviceActivity: Activity() {
         super.onCreate(savedInstanceState)
 
             verticalLayout {
+
+
+
+                        // justify your toolbar
+
+
+
+
+
+
                 linearLayout = this
                 id = 0x69
                 //gravity = Gravity.CENTER
@@ -85,6 +102,12 @@ class SelectDeviceActivity: Activity() {
 
     }
 
+    fun getContext(): Context {
+        return this
+    }
+
+
+
 
     public override fun onStart() {
         super.onStart()
@@ -96,13 +119,57 @@ class SelectDeviceActivity: Activity() {
 
         BluetoothController.getSender { hidd, device ->
             Log.wtf("weiufhas", "Callback called")
+            val mainHandler = Handler(getContext().mainLooper)
 
-            val rMouseSender = RelativeMouseSender(hidd,device)
-            this.rMouseSender=rMouseSender
+            mainHandler.post(object : Runnable{
+                override fun run() {
+                    val rMouseSender = RelativeMouseSender(hidd,device)
+                    Log.i("TAGdddUI", Thread.currentThread().getName());
+                    val viewTouchListener = ViewListener(hidd, device, rMouseSender)
+                    val mDetector = CustomGestureDetector(getContext(), GestureDetectListener(rMouseSender))
+
+                    val gTouchListener = object : View.OnTouchListener {
+
+                override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+
+                    return mDetector.onTouchEvent(event)
+
+                }
+
+            }
+
+
+
+
+                    val composite : CompositeListener = CompositeListener()
+
+                    composite.registerListener(gTouchListener)
+                    composite.registerListener(viewTouchListener)
+            trackPadView.setOnTouchListener(composite)
+
+
+
+
+
+
+
+
+
+
+
+                    //------------trackPadView.setOnTouchListener(viewTouchListener)
+                }
+
+            })
+
+
+
+            //========val rMouseSender = RelativeMouseSender(hidd,device)
+            //-------this.rMouseSender=rMouseSender
            //val mDetector = GestureDetector(this, GestureDetectListener(rMouseSender))
 
-
-            val viewTouchListener = ViewListener(hidd, device, rMouseSender)//=
+            Log.i("TAGddd", Thread.currentThread().getName());
+            //--------------val viewTouchListener = ViewListener(hidd, device, rMouseSender)//=
 //            val gTouchListener = object : View.OnTouchListener {
 //
 //                override fun onTouch(v: View?, event: MotionEvent?): Boolean {
@@ -115,7 +182,7 @@ class SelectDeviceActivity: Activity() {
 
 
 //
-            trackPadView.setOnTouchListener(viewTouchListener)
+            ////////-----trackPadView.setOnTouchListener(viewTouchListener)
 //            myView.setOnClickListener {object : View.OnClickListener {
 //                override fun onClick(v: View?) {
 //                    rMouseSender.sendTestClick()
@@ -148,5 +215,45 @@ class SelectDeviceActivity: Activity() {
     public override fun onPause() {
         super.onPause()
     }
+
+    public override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+
+        val trackPadView = find<View>(R.id.mouseView)
+
+        menuInflater.inflate(R.menu.select_device_activity_menu, menu)
+
+        //getMenuInflater().inflate(R.menu.select_device_activity_menu, menu);
+        return super.onCreateOptionsMenu(menu)
+    }
+
+
+    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
+        R.id.action_settings -> {
+            // User chose the "Settings" item, show the app settings UI...
+            true
+        }
+
+        R.id.action_keyboard -> {
+
+
+
+
+//                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+//                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED,0)
+
+
+
+
+            true
+        }
+
+        else -> {
+            // If we got here, the user's action was not recognized.
+            // Invoke the superclass to handle it.
+            super.onOptionsItemSelected(item)
+        }
+    }
+
+
 
 }
