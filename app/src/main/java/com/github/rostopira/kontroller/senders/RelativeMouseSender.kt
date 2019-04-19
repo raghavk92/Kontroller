@@ -3,8 +3,7 @@ package com.github.rostopira.kontroller.senders
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothHidDevice
 import android.util.Log
-import com.github.rostopira.kontroller.reports.TrackpadMouseReport
-import com.github.rostopira.kontroller.reports.TrackpadMouseScrollReport
+import com.github.rostopira.kontroller.reports.ScrollableTrackpadMouseReport
 import java.util.*
 import kotlin.concurrent.schedule
 
@@ -14,13 +13,13 @@ open class RelativeMouseSender(
     val host: BluetoothDevice
 
 ) {
-    val mouseReport = TrackpadMouseScrollReport()
+    val mouseReport = ScrollableTrackpadMouseReport()
     var previousvscroll :Int=0
     var previoushscroll :Int =0
 
 
     protected open fun sendMouse() {
-        if (!hidDevice.sendReport(host, TrackpadMouseScrollReport.ID, mouseReport.bytes)) {
+        if (!hidDevice.sendReport(host, ScrollableTrackpadMouseReport.ID, mouseReport.bytes)) {
             Log.e(TAG, "Report wasn't sent")
         }
     }

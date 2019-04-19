@@ -25,7 +25,9 @@ import com.github.rostopira.kontroller.extraLibraries.CustomGestureDetector
 
 
 
-class SelectDeviceActivity: Activity() {
+
+
+class SelectDeviceActivity: Activity(),KeyEvent.Callback {
 
     private lateinit var linearLayout: _LinearLayout
     private var sender: SensorSender? = null
