@@ -2,7 +2,9 @@ package com.github.rostopira.kontroller
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.os.Bundle
@@ -18,11 +20,8 @@ import com.github.rostopira.kontroller.senders.SensorSender
 import com.github.rostopira.kontroller.listeners.ViewListener
 import org.jetbrains.anko.*
 import com.github.rostopira.kontroller.extraLibraries.CustomGestureDetector
-
-
-
-
-
+import com.github.rostopira.kontroller.senders.KeyboardSender
+import android.widget.CheckBox
 
 
 
@@ -32,8 +31,10 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
     private lateinit var linearLayout: _LinearLayout
     private var sender: SensorSender? = null
     //private var  viewTouchListener : ViewListener? = null
-
+    private var modifier_checked_state : Int =0
     private var  rMouseSender : RelativeMouseSender? = null
+
+    private var rKeyboardSender : KeyboardSender? = null
 
 
     @SuppressLint("ResourceType")
@@ -54,12 +55,12 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
                 linearLayout = this
                 id = 0x69
                 //gravity = Gravity.CENTER
-                button("TEST") {
-                    setOnClickListener {
-                        rMouseSender?.sendTestClick() ?: toast("Not connected")
-
-                    }
-                }
+//                button("TEST") {
+//                    setOnClickListener {
+//                        rMouseSender?.sendTestClick() ?: toast("Not connected")
+//
+//                    }
+//                }
 
 
 
@@ -117,6 +118,7 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
         val trackPadView = find<View>(R.id.mouseView)
 
 
+
         BluetoothController.init(this)
 
         BluetoothController.getSender { hidd, device ->
@@ -125,6 +127,14 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
 
             mainHandler.post(object : Runnable{
                 override fun run() {
+
+                    ////to be removed
+                    rKeyboardSender= KeyboardSender(hidd,device)
+
+
+                    ///  end removed
+
+
                     val rMouseSender = RelativeMouseSender(hidd,device)
                     Log.i("TAGdddUI", Thread.currentThread().getName());
                     val viewTouchListener = ViewListener(hidd, device, rMouseSender)
@@ -216,16 +226,83 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
 
     public override fun onPause() {
         super.onPause()
+
     }
+
+    public override fun onStop() {
+        super.onStop()
+        BluetoothController.btHid?.unregisterApp()
+
+        BluetoothController.hostDevice=null
+        BluetoothController.btHid=null
+    }
+
 
     public override fun onCreateOptionsMenu(menu: Menu?): Boolean {
 
-        val trackPadView = find<View>(R.id.mouseView)
+       // val trackPadView = find<View>(R.id.mouseView)
 
         menuInflater.inflate(R.menu.select_device_activity_menu, menu)
 
+//        val checkBox = menu?.findItem(R.id.check_modifier_state)?.actionView as CheckBox
+//        checkBox.text = "Modifier Released"
+
         //getMenuInflater().inflate(R.menu.select_device_activity_menu, menu);
         return super.onCreateOptionsMenu(menu)
+    }
+
+//    companion object {
+//        fun callAlert(){
+//            val builder = AlertDialog.Builder(SelectDeviceActivity.this)
+//            builder.setTitle("Make your selection")
+//            builder.setItems(items, DialogInterface.OnClickListener { dialog, item ->
+//                // Do something with the selection
+//                mDoneButton.setText(items[item])
+//            })
+//            val alert = builder.create()
+//            alert.show()
+//        }
+//    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+
+        Log.d("keyeventdown_tag","desc is - $event")
+
+
+        if(rKeyboardSender !=null && event !=null) {
+            var rvalue: Boolean? = false
+            //rvalue = rKeyboardSender?.sendKeyboard(keyCode, event,modifier_checked_state)
+
+            if (rvalue == true) return true
+
+
+            else return super.onKeyDown(keyCode, event)
+
+        }
+        else return super.onKeyDown(keyCode, event)
+
+
+    }
+
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+
+
+        Log.d("keyeventup_tag","desc is - $event")
+
+        if(rKeyboardSender !=null && event !=null) {
+            var rvalue: Boolean? = false
+            rvalue = rKeyboardSender?.sendKeyboard(keyCode, event,modifier_checked_state)
+
+            if (rvalue == true) return true
+
+
+            else return super.onKeyDown(keyCode, event)
+
+        }
+        else return super.onKeyUp(keyCode, event)
+
+
     }
 
 
@@ -240,9 +317,36 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
 
 
 
-//                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-//                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED,0)
+                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED,0)
 
+
+
+
+            true
+        }
+
+        R.id.check_modifier_state -> {
+
+//            item.isChecked = !item.isChecked
+//            Log.i("bbbb","${item.isChecked}")
+//            if(item.isChecked)
+//                modifier_checked_state=1
+//            else modifier_checked_state=0
+            if(modifier_checked_state==1)
+            {
+                modifier_checked_state=0
+                item.title="MODIFIER RELEASED"
+                rKeyboardSender?.sendNullKeys()
+
+            }
+
+            else
+            {
+                modifier_checked_state=1
+                item.title="MODIFIER PRESSED"
+
+            }
 
 
 
