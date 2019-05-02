@@ -109,7 +109,7 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
     /** BluetoothHidDevice.Callback implementation **/
     /************************************************/
 
-    
+
 
     override fun onConnectionStateChanged(device: BluetoothDevice?, state: Int) {
         super.onConnectionStateChanged(device, state)
