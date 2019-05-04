@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="mouseView" type="id"/>
+    <item name="checkModifierState" type="id"/>
+    <item name="action_disconnect" type="id"/>
+    <item name="action_autopair" type="id"/>
+    <item name="textview" type="id"/>
+</resources>

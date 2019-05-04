@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--THE COLORS БЛЯДЬ-->
+    <color name="the_red">#F00</color>
+    <color name="the_clear">#0000</color>
+    <color name="the_black">#000</color>
+</resources>
