@@ -3,4 +3,7 @@
     <string name="action_settings">Settings</string>
     <string name="action_keyboard_title">Keyboard Toggle</string>
     <string name="action_check">Modifier Released</string>
+    <string name="action_disconnect">Disconnect</string>
+    <string name="action_autopair">Enable AutoPair</string>
+    <string name="auto_pair_flag">autopairfl</string>
 </resources>

@@ -4,9 +4,9 @@
 
     <item
             android:id="@+id/check_modifier_state"
-
             android:title="@string/action_check"
             android:showAsAction="ifRoom|withText"
+
 
     />
 
@@ -14,12 +14,24 @@
             android:id="@+id/action_keyboard"
             android:icon="@drawable/ic_action_keyboard"
             android:title="@string/action_keyboard_title"
-            android:showAsAction="ifRoom"
+            android:showAsAction="always"
            />
 
 
 
     <!-- Settings, should always be in the overflow -->
+
+    <item android:id="@+id/action_disconnect"
+          android:title="@string/action_disconnect"
+          android:showAsAction="never"
+
+    />
+    <item android:id="@+id/action_autopair"
+          android:title="@string/action_autopair"
+          android:checkable="true"
+          android:showAsAction="never"
+
+    />
     <item android:id="@+id/action_settings"
           android:title="@string/action_settings"
           android:showAsAction="never"

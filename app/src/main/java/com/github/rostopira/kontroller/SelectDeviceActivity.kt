@@ -23,10 +23,15 @@ import com.github.rostopira.kontroller.extraLibraries.CustomGestureDetector
 import com.github.rostopira.kontroller.senders.KeyboardSender
 import android.widget.CheckBox
 
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+
 
 
 
 class SelectDeviceActivity: Activity(),KeyEvent.Callback {
+
+    private var autoPairMenuItem : MenuItem? =null
 
     private lateinit var linearLayout: _LinearLayout
     private var sender: SensorSender? = null
@@ -102,7 +107,6 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
 //        Log.i("dd2",buff2.getShort().toString())
 
 
-
     }
 
     fun getContext(): Context {
@@ -115,7 +119,19 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
     public override fun onStart() {
         super.onStart()
 
+        val sharedPref = this.getPreferences(Context.MODE_PRIVATE)
+
+        BluetoothController.autoPairFlag= sharedPref.getBoolean(getString(R.string.auto_pair_flag),false)
+        if(autoPairMenuItem!=null)
+        {
+            autoPairMenuItem?.isChecked= sharedPref.getBoolean(getString(R.string.auto_pair_flag),false)
+        }
+
+
+
         val trackPadView = find<View>(R.id.mouseView)
+
+
 
 
 
@@ -243,6 +259,12 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
        // val trackPadView = find<View>(R.id.mouseView)
 
         menuInflater.inflate(R.menu.select_device_activity_menu, menu)
+        autoPairMenuItem= menu?.findItem(R.id.action_autopair)
+        val sharedPref = this.getPreferences(Context.MODE_PRIVATE)
+
+        Log.i("crown","jewel")
+        autoPairMenuItem?.isChecked= sharedPref.getBoolean(getString(R.string.auto_pair_flag),false)
+
 
 //        val checkBox = menu?.findItem(R.id.check_modifier_state)?.actionView as CheckBox
 //        checkBox.text = "Modifier Released"
@@ -352,6 +374,44 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
 
             true
         }
+        R.id.action_disconnect -> {
+
+            BluetoothController.btHid?.disconnect(BluetoothController.hostDevice)
+            true
+        }
+
+        R.id.action_autopair -> {
+            val sharedPref = this?.getPreferences(Context.MODE_PRIVATE)
+            if(item.isChecked) {
+                item.isChecked = false
+                BluetoothController.autoPairFlag=false
+
+                with(sharedPref.edit())
+                {
+                    putBoolean(getString(R.string.auto_pair_flag), BluetoothController.autoPairFlag)
+                    commit()
+                }
+
+            }
+            else
+            {
+                item.isChecked=true
+                BluetoothController.autoPairFlag=true
+                if(BluetoothController.btHid?.getConnectionState(BluetoothController.mpluggedDevice)==0 && BluetoothController.mpluggedDevice!= null && BluetoothController.autoPairFlag ==true)
+                {
+                    BluetoothController.btHid?.connect(BluetoothController.mpluggedDevice)
+                    //hostDevice.toString()
+                }
+                with(sharedPref.edit())
+                {
+                    putBoolean(getString(R.string.auto_pair_flag), BluetoothController.autoPairFlag)
+                    commit()
+                }
+
+            }
+            true
+        }
+
 
         else -> {
             // If we got here, the user's action was not recognized.

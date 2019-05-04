@@ -50,6 +50,9 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
     val btAdapter by lazy { BluetoothAdapter.getDefaultAdapter()!! }
     var btHid: BluetoothHidDevice? = null
     var hostDevice: BluetoothDevice? = null
+    var autoPairFlag = false
+
+    var mpluggedDevice :BluetoothDevice? = null
 
 
 
@@ -141,8 +144,20 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
         var pairedDevices = btHid?.getDevicesMatchingConnectionStates(intArrayOf(BluetoothProfile.STATE_CONNECTING,BluetoothProfile.STATE_CONNECTED,BluetoothProfile.STATE_DISCONNECTED,BluetoothProfile.STATE_DISCONNECTING))
         Log.d("paired d", "paired devices are : $pairedDevices")
         Log.d("paired d","${btHid?.getConnectionState(pairedDevices?.get(0))}")
-        if(btHid?.getConnectionState(pairedDevices?.get(0))==0 )
+        mpluggedDevice = pluggedDevice
+            if(btHid?.getConnectionState(pluggedDevice)==0 && pluggedDevice!= null && autoPairFlag ==true)
+        {
+            btHid?.connect(pluggedDevice)
+            //hostDevice.toString()
+
+
+        }
+
+
+        else if(btHid?.getConnectionState(pairedDevices?.get(0))==0 && autoPairFlag==true)
             {
+                Log.i("ddaaqq","sssS"
+                )
                 btHid?.connect(pairedDevices?.get(0))
             }
 
