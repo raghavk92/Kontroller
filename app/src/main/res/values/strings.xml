@@ -6,4 +6,6 @@
     <string name="action_disconnect">Disconnect</string>
     <string name="action_autopair">Enable AutoPair</string>
     <string name="auto_pair_flag">autopairfl</string>
+    <string name="title_screen_on">Screen Always On</string>
+    <string name="screen_on_flag">screenonfl</string>
 </resources>
