@@ -23,7 +23,7 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
     override fun onSetReport(device: BluetoothDevice?, type: Byte, id: Byte, data: ByteArray?) {
         Log.i("setfirst","setfirst")
         super.onSetReport(device, type, id, data)
-        Log.i("setreport","Haha $device and $type and $id and $data")
+        Log.i("setreport","this $device and $type and $id and $data")
 
     }
 
@@ -37,7 +37,7 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
             if (type == BluetoothHidDevice.REPORT_TYPE_FEATURE) {
                 featureReport.wheelResolutionMultiplier = true
                 featureReport.acPanResolutionMultiplier = true
-                Log.i("bakar","$btHid")
+                Log.i("getbthid","$btHid")
 
                  var wasrs=btHid?.replyReport(device, type, FeatureReport.ID, featureReport.bytes)
                 Log.i("replysuccess flag ",wasrs.toString())

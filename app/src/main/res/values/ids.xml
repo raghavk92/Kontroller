@@ -5,4 +5,5 @@
     <item name="action_disconnect" type="id"/>
     <item name="action_autopair" type="id"/>
     <item name="textview" type="id"/>
+    <item name="action_screen_on" type="id"/>
 </resources>

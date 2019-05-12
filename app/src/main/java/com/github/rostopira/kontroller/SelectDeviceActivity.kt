@@ -32,6 +32,7 @@ import android.preference.PreferenceManager;
 class SelectDeviceActivity: Activity(),KeyEvent.Callback {
 
     private var autoPairMenuItem : MenuItem? =null
+    private var screenOnMenuItem : MenuItem? =null
 
     private lateinit var linearLayout: _LinearLayout
     private var sender: SensorSender? = null
@@ -40,6 +41,8 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
     private var  rMouseSender : RelativeMouseSender? = null
 
     private var rKeyboardSender : KeyboardSender? = null
+
+
 
 
     @SuppressLint("ResourceType")
@@ -122,10 +125,13 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
         val sharedPref = this.getPreferences(Context.MODE_PRIVATE)
 
         BluetoothController.autoPairFlag= sharedPref.getBoolean(getString(R.string.auto_pair_flag),false)
-        if(autoPairMenuItem!=null)
-        {
-            autoPairMenuItem?.isChecked= sharedPref.getBoolean(getString(R.string.auto_pair_flag),false)
-        }
+
+        autoPairMenuItem?.isChecked= sharedPref.getBoolean(getString(R.string.auto_pair_flag),false)
+
+        screenOnMenuItem?.isChecked= sharedPref.getBoolean(getString(R.string.screen_on_flag),false)
+
+        if(sharedPref.getBoolean(getString(R.string.screen_on_flag),false)) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
 
 
@@ -260,8 +266,11 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
 
         menuInflater.inflate(R.menu.select_device_activity_menu, menu)
         autoPairMenuItem= menu?.findItem(R.id.action_autopair)
+
+        screenOnMenuItem = menu?.findItem(R.id.action_screen_on)
         val sharedPref = this.getPreferences(Context.MODE_PRIVATE)
 
+        screenOnMenuItem?.isChecked = sharedPref.getBoolean(getString(R.string.screen_on_flag),false);
         Log.i("crown","jewel")
         autoPairMenuItem?.isChecked= sharedPref.getBoolean(getString(R.string.auto_pair_flag),false)
 
@@ -377,6 +386,36 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
         R.id.action_disconnect -> {
 
             BluetoothController.btHid?.disconnect(BluetoothController.hostDevice)
+            true
+        }
+
+        R.id.action_screen_on -> {
+            val sharedPref = this?.getPreferences(Context.MODE_PRIVATE)
+            if(item.isChecked) {
+                item.isChecked = false
+
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+                with(sharedPref.edit())
+                {
+                    putBoolean(getString(R.string.screen_on_flag), false)
+                    commit()
+                }
+
+            }
+            else
+            {
+                item.isChecked=true
+                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+                with(sharedPref.edit())
+                {
+                    putBoolean(getString(R.string.screen_on_flag), true)
+                    commit()
+                }
+
+            }
+
             true
         }
 

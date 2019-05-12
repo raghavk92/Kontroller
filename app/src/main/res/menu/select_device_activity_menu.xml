@@ -32,6 +32,16 @@
           android:showAsAction="never"
 
     />
+
+    <item android:id="@+id/action_screen_on"
+          android:title="@string/title_screen_on"
+          android:checkable="true"
+          android:showAsAction="never"
+
+    />
+
+
+
     <item android:id="@+id/action_settings"
           android:title="@string/action_settings"
           android:showAsAction="never"
