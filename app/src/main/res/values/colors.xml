@@ -4,4 +4,7 @@
     <color name="the_red">#F00</color>
     <color name="the_clear">#0000</color>
     <color name="the_black">#000</color>
+    <color name="start_gradient">#3378FF</color>
+    <!--<color name="start_gradient">#3049BE</color>-->
+    <color name="end_gradient">#000</color>
 </resources>

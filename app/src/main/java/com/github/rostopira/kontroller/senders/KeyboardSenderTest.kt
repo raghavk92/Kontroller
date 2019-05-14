@@ -12,7 +12,7 @@ import java.util.*
 import kotlin.concurrent.schedule
 
 @Suppress("MemberVisibilityCanBePrivate")
-open class KeyboardSender(
+open class KeyboardSenderTest(
     val hidDevice: BluetoothHidDevice,
     val host: BluetoothDevice
 
@@ -54,13 +54,12 @@ open class KeyboardSender(
 
 
         val byteKey = KeyboardReport.KeyEventMap[keyEventCode]
-
         if(byteKey!=null)
         {
             setModifiers(event)
             if(event.keyCode== KeyEvent.KEYCODE_AT || event.keyCode== KeyEvent.KEYCODE_POUND || event.keyCode== KeyEvent.KEYCODE_STAR)
             {
-                keyboardReport.leftShift=true
+            keyboardReport.leftShift=true
             }
             keyboardReport.key1=byteKey.toByte()
             customSender(modifier_checked_state)
@@ -223,8 +222,8 @@ open class KeyboardSender(
 
 
 
-    companion object {
-        const val TAG = "KeyboardSender"
-    }
+companion object {
+    const val TAG = "KeyboardSender"
+}
 
 }
