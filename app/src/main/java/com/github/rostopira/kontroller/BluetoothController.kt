@@ -57,6 +57,7 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
 
 
     private var deviceListener: ((BluetoothHidDevice, BluetoothDevice)->Unit)? = null
+    private var disconnectListener: (()->Unit)? = null
 
     fun init(ctx: Context) {
         if (btHid != null)
@@ -72,6 +73,12 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
             }
         }
         deviceListener = callback
+    }
+
+
+    fun getDisconnector(callback: ()->Unit) {
+
+        disconnectListener = callback
     }
 
     /*****************************************************/
@@ -129,12 +136,19 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
                 hostDevice = device
 
                 deviceListener?.invoke(btHid!!, device)
+
                 //deviceListener = null
             } else {
                 Log.e(TAG, "Device not connected")
             }
-        } else
+        } else {
             hostDevice = null
+            if(state == BluetoothProfile.STATE_DISCONNECTED)
+            {
+                disconnectListener?.invoke()
+            }
+
+        }
     }
 
     override fun onAppStatusChanged(pluggedDevice: BluetoothDevice?, registered: Boolean) {
