@@ -1,4 +1,4 @@
-package com.github.rostopira.kontroller.senders
+package com.github.roarappstudio.btkontroller.senders
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothHidDevice
@@ -7,7 +7,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.util.Log
-import com.github.rostopira.kontroller.reports.AbsMouseReport
+import com.github.roarappstudio.btkontroller.reports.AbsMouseReport
 import kotlin.math.PI
 import kotlin.math.roundToInt
 

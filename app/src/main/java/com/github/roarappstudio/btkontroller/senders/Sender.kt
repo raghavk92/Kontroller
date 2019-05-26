@@ -1,9 +1,9 @@
-package com.github.rostopira.kontroller.senders
+package com.github.roarappstudio.btkontroller.senders
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothHidDevice
 import android.util.Log
-import com.github.rostopira.kontroller.reports.MouseReport
+import com.github.roarappstudio.btkontroller.reports.MouseReport
 import java.util.*
 import kotlin.concurrent.schedule
 

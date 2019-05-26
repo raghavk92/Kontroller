@@ -1,16 +1,9 @@
-package com.github.rostopira.kontroller
+package com.github.roarappstudio.btkontroller
 
 import android.bluetooth.*
 import android.content.Context
-import android.os.Build
 import android.util.Log
-import com.github.rostopira.kontroller.reports.FeatureReport
-import java.util.*
-import javax.security.auth.callback.Callback
-import android.app.AlertDialog
-import android.content.DialogInterface
-import android.content.Intent
-import android.support.v4.content.LocalBroadcastManager
+import com.github.roarappstudio.btkontroller.reports.FeatureReport
 
 
 @Suppress("MemberVisibilityCanBePrivate")

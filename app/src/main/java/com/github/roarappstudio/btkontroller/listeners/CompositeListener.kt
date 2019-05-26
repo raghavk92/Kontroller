@@ -1,4 +1,4 @@
-package com.github.rostopira.kontroller.listeners
+package com.github.roarappstudio.btkontroller.listeners
 
 import android.view.MotionEvent
 import android.view.View

@@ -1,4 +1,4 @@
-package com.github.rostopira.kontroller.senders
+package com.github.roarappstudio.btkontroller.senders
 
 
 
@@ -6,10 +6,7 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothHidDevice
 import android.util.Log
 import android.view.KeyEvent
-import com.github.rostopira.kontroller.reports.KeyboardReport
-import com.github.rostopira.kontroller.reports.ScrollableTrackpadMouseReport
-import java.util.*
-import kotlin.concurrent.schedule
+import com.github.roarappstudio.btkontroller.reports.KeyboardReport
 
 @Suppress("MemberVisibilityCanBePrivate")
 open class KeyboardSender(

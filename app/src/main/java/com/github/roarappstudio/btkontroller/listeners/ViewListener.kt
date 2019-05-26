@@ -1,11 +1,11 @@
-package com.github.rostopira.kontroller.listeners
+package com.github.roarappstudio.btkontroller.listeners
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothHidDevice
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import com.github.rostopira.kontroller.senders.RelativeMouseSender
+import com.github.roarappstudio.btkontroller.senders.RelativeMouseSender
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
 

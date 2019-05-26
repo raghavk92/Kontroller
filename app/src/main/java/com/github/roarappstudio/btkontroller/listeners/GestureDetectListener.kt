@@ -1,13 +1,12 @@
-package com.github.rostopira.kontroller.listeners
+package com.github.roarappstudio.btkontroller.listeners
 
 import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ViewConfiguration
-import com.github.rostopira.kontroller.senders.RelativeMouseSender
+import com.github.roarappstudio.btkontroller.senders.RelativeMouseSender
 import java.util.*
 import kotlin.concurrent.schedule
-import kotlin.math.roundToInt
 
 class GestureDetectListener(val rMouseSender : RelativeMouseSender) : GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener {
 

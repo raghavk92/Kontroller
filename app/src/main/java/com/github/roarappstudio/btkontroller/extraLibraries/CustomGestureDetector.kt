@@ -1,9 +1,9 @@
-package com.github.rostopira.kontroller.extraLibraries
+package com.github.roarappstudio.btkontroller.extraLibraries
 
 import android.content.Context
 import android.view.GestureDetector
 import android.view.MotionEvent
-import com.github.rostopira.kontroller.listeners.GestureDetectListener
+import com.github.roarappstudio.btkontroller.listeners.GestureDetectListener
 
 class CustomGestureDetector(context: Context, internal var mListener: GestureDetectListener) :
     GestureDetector(context, mListener) {

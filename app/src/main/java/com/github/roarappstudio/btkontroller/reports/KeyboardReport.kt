@@ -1,11 +1,6 @@
-package com.github.rostopira.kontroller.reports
+package com.github.roarappstudio.btkontroller.reports
 
 import android.view.KeyEvent
-import kotlin.experimental.and
-import kotlin.experimental.or
-
-
-import java.io.ByteArrayOutputStream
 import kotlin.experimental.and
 import kotlin.experimental.or
 

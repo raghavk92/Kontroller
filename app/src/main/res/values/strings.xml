@@ -2,7 +2,7 @@
     <string name="app_name">Kontroller</string>
     <string name="action_settings">Settings</string>
     <string name="action_keyboard_title">Keyboard Toggle</string>
-    <string name="action_check">NORMAL</string>
+    <string name="action_check">(N)</string>
     <string name="action_tool_tip">Toggle to switch(Ctrl/Alt/Wn Keys) from click_each_time(Normal) state to key_pressed(Hold) state</string>
     <string name="action_disconnect">Disconnect</string>
     <string name="action_autopair">Enable AutoPair</string>

@@ -1,4 +1,4 @@
-package com.github.rostopira.kontroller
+package com.github.roarappstudio.btkontroller
 
 import android.Manifest
 import android.app.Activity

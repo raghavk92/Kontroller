@@ -1,11 +1,11 @@
-package com.github.rostopira.kontroller.reports
+package com.github.roarappstudio.btkontroller.reports
 
 import kotlin.experimental.and
 import kotlin.experimental.or
 
 @Suppress("EXPERIMENTAL_FEATURE_WARNING")
-inline class TestTrackpadMouseReport (
-    val bytes: ByteArray = ByteArray(3) {0}
+inline class ScrollableTrackpadMouseReport (
+    val bytes: ByteArray = ByteArray(7) {0}
     ) {
 
 
@@ -27,14 +27,35 @@ inline class TestTrackpadMouseReport (
                 bytes[0] and 0b101
         }
 
-        var dx: Byte
+        var dxLsb: Byte
         get() = bytes[1]
         set(value) { bytes[1] = value }
 
-
-        var dy: Byte
+        var dxMsb: Byte
         get() = bytes[2]
         set(value) { bytes[2] = value }
+
+
+        var dyLsb: Byte
+        get() = bytes[3]
+        set(value) { bytes[3] = value }
+
+        var dyMsb: Byte
+        get() = bytes[4]
+        set(value) { bytes[4] = value }
+
+    var vScroll : Byte
+        get() = bytes[5]
+        set(value) {
+            bytes[5]=value
+        }
+
+        var hScroll : Byte
+        get() = bytes[6]
+        set(value) {
+            bytes[6]=value
+        }
+
 
 
         fun reset() = bytes.fill(0)

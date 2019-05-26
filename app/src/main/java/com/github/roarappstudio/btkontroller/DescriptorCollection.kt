@@ -1,4 +1,4 @@
-package com.github.rostopira.kontroller
+package com.github.roarappstudio.btkontroller
 
 object DescriptorCollection {
 

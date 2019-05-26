@@ -1,10 +1,8 @@
-package com.github.rostopira.kontroller
+package com.github.roarappstudio.btkontroller
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.Context
-import android.content.DialogInterface
 import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.os.Bundle
@@ -12,21 +10,14 @@ import android.os.Handler
 import android.util.Log
 import android.view.*
 import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import com.github.rostopira.kontroller.listeners.CompositeListener
-import com.github.rostopira.kontroller.listeners.GestureDetectListener
-import com.github.rostopira.kontroller.senders.RelativeMouseSender
-import com.github.rostopira.kontroller.senders.SensorSender
-import com.github.rostopira.kontroller.listeners.ViewListener
+import com.github.roarappstudio.btkontroller.listeners.CompositeListener
+import com.github.roarappstudio.btkontroller.listeners.GestureDetectListener
+import com.github.roarappstudio.btkontroller.senders.RelativeMouseSender
+import com.github.roarappstudio.btkontroller.senders.SensorSender
+import com.github.roarappstudio.btkontroller.listeners.ViewListener
 import org.jetbrains.anko.*
-import com.github.rostopira.kontroller.extraLibraries.CustomGestureDetector
-import com.github.rostopira.kontroller.senders.KeyboardSender
-import android.widget.CheckBox
-
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-
-
+import com.github.roarappstudio.btkontroller.extraLibraries.CustomGestureDetector
+import com.github.roarappstudio.btkontroller.senders.KeyboardSender
 
 
 class SelectDeviceActivity: Activity(),KeyEvent.Callback {
@@ -74,9 +65,13 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
 
 
 
-                view(){
+                textView(){
                   id= R.id.mouseView
                   background=getDrawable(R.drawable.view_border)
+
+
+                    text="Trackpad"
+                    gravity=Gravity.CENTER
 
 
                 }.lparams(width= matchParent,height = matchParent )
@@ -391,7 +386,7 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
             if(modifier_checked_state==1)
             {
                 modifier_checked_state=0
-                item.title="NORMAL"
+                item.title="(N)"
                 rKeyboardSender?.sendNullKeys()
 
             }
@@ -399,7 +394,7 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
             else
             {
                 modifier_checked_state=1
-                item.title="PRESSED"
+                item.title="(P)"
 
             }
 
