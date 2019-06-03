@@ -107,13 +107,22 @@ class GestureDetectListener(val rMouseSender : RelativeMouseSender) : GestureDet
                 }
                 MotionEvent.ACTION_UP -> {
                     mPtrCount--
-                    if (mPtrCount == 0 && ((System.currentTimeMillis() - mPossibleTwoFingerTapStartTime) <= ViewConfiguration.getTapTimeout()) && possibleTwoFingerTapFlag == 1) {
+
+                    if(possibleTwoFingerTapFlag == 1)
+                    {
                         possibleTwoFingerTapFlag = 0
+
+                    if (mPtrCount == 0 && ((System.currentTimeMillis() - mPossibleTwoFingerTapStartTime) <= ViewConfiguration.getTapTimeout()) ) {
+
                         disableSingleTapFlag =1
                         Log.i("thisistwofinger", "two finger single tap is implemented")
 
                         rMouseSender.sendRightClick()
                     }
+
+                    }
+
+
                 }
             }
         }

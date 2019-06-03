@@ -66,7 +66,7 @@ class ViewListener(val hidDevice: BluetoothHidDevice, val host: BluetoothDevice,
                     //bytes2[1]= bytes1[3]
 
 
-                    Log.d("ddfuck2", bytesArrX.contentToString())
+                    Log.d("ddf2", bytesArrX.contentToString())
 
 
 
@@ -98,7 +98,7 @@ class ViewListener(val hidDevice: BluetoothHidDevice, val host: BluetoothDevice,
                             //bytes2[1]= bytes1[3]
 
 
-                            Log.d("ddfuck2", rMouseSender.mouseReport.dxMsb.toString() +"," +rMouseSender.mouseReport.dxLsb.toString())
+                            Log.d("ddf2", rMouseSender.mouseReport.dxMsb.toString() +"," +rMouseSender.mouseReport.dxLsb.toString())
 
 
 

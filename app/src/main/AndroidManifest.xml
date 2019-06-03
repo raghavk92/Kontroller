@@ -29,7 +29,9 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".SelectDeviceActivity"/>
+        <activity android:name=".SelectDeviceActivity"
+                  android:configChanges="orientation|screenSize"
+        />
 
     </application>
 </manifest>
