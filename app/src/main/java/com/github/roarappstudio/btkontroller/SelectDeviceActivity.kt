@@ -18,6 +18,7 @@ import com.github.roarappstudio.btkontroller.listeners.ViewListener
 import org.jetbrains.anko.*
 import com.github.roarappstudio.btkontroller.extraLibraries.CustomGestureDetector
 import com.github.roarappstudio.btkontroller.senders.KeyboardSender
+import com.github.roarappstudio.btkontroller.senders.UnicodeSender
 
 
 class SelectDeviceActivity: Activity(),KeyEvent.Callback {
@@ -34,9 +35,8 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
     private var  rMouseSender : RelativeMouseSender? = null
 
     private var rKeyboardSender : KeyboardSender? = null
-
-
-
+    private var unicodeSender: UnicodeSender? = null
+    private var textFieldFocused = false
 
     @SuppressLint("ResourceType")
     public override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,26 +44,22 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
 
             verticalLayout {
 
-
-
-                        // justify your toolbar
-
-
-
-
-
-
                 linearLayout = this
                 id = 0x69
-                //gravity = Gravity.CENTER
-//                button("TEST") {
-//                    setOnClickListener {
-//                        rMouseSender?.sendTestClick() ?: toast("Not connected")
-//
-//                    }
-//                }
 
-
+                linearLayout {
+                    val textBox = editText {
+                        setOnFocusChangeListener { _, hasFocus -> textFieldFocused = hasFocus }
+                    }.lparams {
+                        weight = 1f
+                    }
+                    button("SEND") {
+                        setOnClickListener {
+                            unicodeSender?.sendString(textBox.text.toString())
+                            textBox.clearComposingText()
+                        }
+                    }
+                }
 
                 textView(){
                   id= R.id.mouseView
@@ -147,57 +143,27 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
 
         BluetoothController.getSender { hidd, device ->
             Log.wtf("weiufhas", "Callback called")
-            val mainHandler = Handler(getContext().mainLooper)
+            runOnUiThread {
+                rKeyboardSender= KeyboardSender(hidd,device)
+                unicodeSender = UnicodeSender(hidd, device)
 
-            mainHandler.post(object : Runnable{
-                override fun run() {
+                val rMouseSender = RelativeMouseSender(hidd,device)
+                Log.i("TAGdddUI", Thread.currentThread().name)
+                val viewTouchListener = ViewListener(hidd, device, rMouseSender)
+                val mDetector = CustomGestureDetector(getContext(), GestureDetectListener(rMouseSender))
 
+                val gTouchListener = View.OnTouchListener { _, event -> mDetector.onTouchEvent(event) }
 
-                    rKeyboardSender= KeyboardSender(hidd,device)
+                val composite = CompositeListener()
 
+                composite.registerListener(gTouchListener)
+                composite.registerListener(viewTouchListener)
+                trackPadView.setOnTouchListener(composite)
 
+                bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_connected)
+                bluetoothStatus?.tooltipText="App Connected via bluetooth"
 
-
-
-                    val rMouseSender = RelativeMouseSender(hidd,device)
-                    Log.i("TAGdddUI", Thread.currentThread().getName());
-                    val viewTouchListener = ViewListener(hidd, device, rMouseSender)
-                    val mDetector = CustomGestureDetector(getContext(), GestureDetectListener(rMouseSender))
-
-                    val gTouchListener = object : View.OnTouchListener {
-
-                        override fun onTouch(v: View?, event: MotionEvent?): Boolean {
-
-                            return mDetector.onTouchEvent(event)
-
-                        }
-
-                    }
-
-
-
-
-                    val composite : CompositeListener = CompositeListener()
-
-                    composite.registerListener(gTouchListener)
-                    composite.registerListener(viewTouchListener)
-                    trackPadView.setOnTouchListener(composite)
-
-
-
-
-
-
-                    bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_connected)
-                    bluetoothStatus?.tooltipText="App Connected via bluetooth"
-
-
-
-
-                    //------------trackPadView.setOnTouchListener(viewTouchListener)
-                }
-
-            })
+            }
 
 
 
@@ -319,7 +285,7 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
         Log.d("keyeventdown_tag","desc is - $event")
 
 
-        if(rKeyboardSender !=null && event !=null) {
+        if(rKeyboardSender !=null && event !=null && !textFieldFocused) {
             var rvalue: Boolean? = false
             //rvalue = rKeyboardSender?.sendKeyboard(keyCode, event,modifier_checked_state)
 
