@@ -407,7 +407,7 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
         }
 
         R.id.action_autopair -> {
-            val sharedPref = this?.getPreferences(Context.MODE_PRIVATE)
+            val sharedPref = getPreferences(Context.MODE_PRIVATE)
             if(item.isChecked) {
                 item.isChecked = false
                 BluetoothController.autoPairFlag=false
