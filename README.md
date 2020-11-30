@@ -2,7 +2,7 @@
 
 This is an application to control your pc,mac,tv,ipad etc as a mouse or keyboard using the Bluetooth HID Device profile in Android 9(Pie) & above devices. App is currently in development. 
 
-Me & Dima Rostopira(https://github.com/rostopira/) are the collaborators on this project. 
+Me & Dima Rostopira(https://github.com/rostopira/) are the collaborators on this project.Even though all the commits on github show that they are done by me on the master branch, Half the code is written by Dima Rostopira and half by me. 
 
 
 To connect other devices with your app you need to open the app on your phone and connect to your device via bluetooth
