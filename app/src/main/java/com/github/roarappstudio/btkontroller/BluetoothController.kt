@@ -2,6 +2,7 @@ package com.github.roarappstudio.btkontroller
 
 import android.bluetooth.*
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import com.github.roarappstudio.btkontroller.reports.FeatureReport
 
@@ -42,6 +43,7 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
 
     val btAdapter by lazy { BluetoothAdapter.getDefaultAdapter()!! }
     var btHid: BluetoothHidDevice? = null
+    var context: Context? = null
     var hostDevice: BluetoothDevice? = null
     var autoPairFlag = false
 
@@ -53,6 +55,7 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
     private var disconnectListener: (()->Unit)? = null
 
     fun init(ctx: Context) {
+        context = ctx
         if (btHid != null)
             return
         btAdapter.getProfileProxy(ctx, this, BluetoothProfile.HID_DEVICE)
@@ -99,11 +102,10 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
         }
         this.btHid = btHid
         btHid.registerApp(sdpRecord, null, qosOut, {it.run()}, this)//--
-        btAdapter.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE, 300000)
 
-
-
-
+        if (mpluggedDevice != null && !btAdapter.isDiscovering) {
+            context?.startActivity(Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE))
+        }
     }
 
 
