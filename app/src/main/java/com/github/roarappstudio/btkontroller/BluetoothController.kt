@@ -2,6 +2,7 @@ package com.github.roarappstudio.btkontroller
 
 import android.bluetooth.*
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import com.github.roarappstudio.btkontroller.reports.FeatureReport
 
@@ -42,6 +43,7 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
 
     val btAdapter by lazy { BluetoothAdapter.getDefaultAdapter()!! }
     var btHid: BluetoothHidDevice? = null
+    var context: Context? = null
     var hostDevice: BluetoothDevice? = null
     var autoPairFlag = false
 
@@ -53,6 +55,7 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
     private var disconnectListener: (()->Unit)? = null
 
     fun init(ctx: Context) {
+        context = ctx
         if (btHid != null)
             return
         btAdapter.getProfileProxy(ctx, this, BluetoothProfile.HID_DEVICE)
@@ -99,11 +102,10 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
         }
         this.btHid = btHid
         btHid.registerApp(sdpRecord, null, qosOut, {it.run()}, this)//--
-        btAdapter.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE, 300000)
 
-
-
-
+        if (mpluggedDevice == null && !btAdapter.isDiscovering) {
+            context?.startActivity(Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE))
+        }
     }
 
 
@@ -150,22 +152,20 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
         {
         var pairedDevices = btHid?.getDevicesMatchingConnectionStates(intArrayOf(BluetoothProfile.STATE_CONNECTING,BluetoothProfile.STATE_CONNECTED,BluetoothProfile.STATE_DISCONNECTED,BluetoothProfile.STATE_DISCONNECTING))
         Log.d("paired d", "paired devices are : $pairedDevices")
-        Log.d("paired d","${btHid?.getConnectionState(pairedDevices?.get(0))}")
         mpluggedDevice = pluggedDevice
-            if(btHid?.getConnectionState(pluggedDevice)==0 && pluggedDevice!= null && autoPairFlag ==true)
-        {
-            btHid?.connect(pluggedDevice)
-            //hostDevice.toString()
-
-
-        }
-
-
-        else if(btHid?.getConnectionState(pairedDevices?.get(0))==0 && autoPairFlag==true)
-            {
-                Log.i("ddaaqq","sssS"
-                )
-                btHid?.connect(pairedDevices?.get(0))
+            if (autoPairFlag) {
+                if (pluggedDevice != null && btHid?.getConnectionState(pluggedDevice) == BluetoothProfile.STATE_DISCONNECTED) {
+                    btHid?.connect(pluggedDevice)
+                    //hostDevice.toString()
+                } else {
+                    pairedDevices?.firstOrNull()?.let {
+                        val pairedDState = btHid?.getConnectionState(it)
+                        Log.d("paired d", pairedDState.toString())
+                        if (pairedDState == BluetoothProfile.STATE_DISCONNECTED) {
+                            btHid?.connect(it)
+                        }
+                    }
+                }
             }
 
 //            val intent = Intent("CUSTOM_ACTION")
