@@ -103,7 +103,7 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
         this.btHid = btHid
         btHid.registerApp(sdpRecord, null, qosOut, {it.run()}, this)//--
 
-        if (mpluggedDevice != null && !btAdapter.isDiscovering) {
+        if (mpluggedDevice == null && !btAdapter.isDiscovering) {
             context?.startActivity(Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE))
         }
     }
