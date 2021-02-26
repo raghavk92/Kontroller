@@ -28,8 +28,8 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
 
         Log.i("get", "second")
             if (type == BluetoothHidDevice.REPORT_TYPE_FEATURE) {
-                featureReport.wheelResolutionMultiplier = true
-                featureReport.acPanResolutionMultiplier = true
+                featureReport.wheelResolutionMultiplier = 3
+                featureReport.acPanResolutionMultiplier = 1
                 Log.i("getbthid","$btHid")
 
                  var wasrs=btHid?.replyReport(device, type, FeatureReport.ID, featureReport.bytes)
