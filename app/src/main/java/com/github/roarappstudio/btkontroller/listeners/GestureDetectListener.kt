@@ -3,277 +3,207 @@ package com.github.roarappstudio.btkontroller.listeners
 import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
-import android.view.ViewConfiguration
 import com.github.roarappstudio.btkontroller.senders.RelativeMouseSender
 import java.util.*
-import kotlin.concurrent.schedule
+import kotlin.concurrent.timerTask
+import kotlin.math.abs
+import kotlin.math.roundToInt
 
-class GestureDetectListener(val rMouseSender : RelativeMouseSender) : GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener {
-
-    val TAP = 0
-    val DOUBLE_TAP = 1
-
-    val DOUBLE_TAP_TIMEOUT = ViewConfiguration
-        .getDoubleTapTimeout().toLong()
-    var mViewScaledTouchSlop: Float = 0.toFloat()
-    //internal var mGestureName: EditText
-
-    private var mCurrentDownEvent: MotionEvent? = null
-
-    private var mPtrCount = 0
+class GestureDetectListener(val rMouseSender: RelativeMouseSender) :
+    GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener {
 
 
-    private var possibleTwoFingerTapFlag =0
-    private var mPossibleTwoFingerTapStartTime=System.currentTimeMillis()
-    private var mPrimStartTouchEventX = 0f
-    private var mPrimStartTouchEventY = 0f
-    private var mSecStartTouchEventX = 0f
-    private var mSecStartTouchEventY = 0f
-    private var mPrimSecStartTouchDistance = 0f
-    private var notAConfirmedDoubleTapFlag=0
-    private var disableSingleTapFlag=0
-    private var previousScrollX : Float = 0f
-    private var previousScrollY : Float = 0f
+    var singleClickTimeout = 200L
+    var doubleClickTimeout = 100L
+    var rightClickTimeout = 100L
 
+    var scrollAccuracy = 0.3f
+    var mouseAccuracy = 1f
 
-    private var testerp1=0
-    private var testerp2 =0
-    private var stopScrollFlag=0
+    var previousX = 0f
+    var previousY = 0f
+
+    /**
+     * True if mouse has been moved. If true potential double tap won't be triggered after ACTION_UP
+     */
+    var moved = false
+
+    /**
+     * Time of the last left click. If a new Left ACTION_DOWN event occurs before a certain amount of time has passed, doubleclickdown is set to true
+     */
+    var lastLeftClick = System.currentTimeMillis()
+
+    /**
+     * Time a left click has been down. If it reaches a certain threshold a potential
+     */
+    var doubeLeftClickDownTime = System.currentTimeMillis()
+
+    /**
+     * If set to true a sendLeftClickOff is only triggered, after another ACTION_UP event
+     */
+    var doubleclickdown = false
+
+    /**
+     * If an ACTION_POINTER_UP event of to pointers is triggered before a certain threshold a right click will be sent
+     */
+    var potentialRightClickStartTime = System.currentTimeMillis()
+
+    /**
+     * If two pointers are being held down, scrolling is possible in scroll event
+     */
+    var twoPointerDown = false
+
+    /**
+     * If two pointers are being held down, every movement except scrolling is blocked
+     */
+    var scrollLock = false
 
     internal var downTimestamp = System.currentTimeMillis()
     fun onTouchEvent(ev: MotionEvent?): Boolean {
-        if(ev !=null) {
+        if (ev != null) {
             val action = ev.action and MotionEvent.ACTION_MASK
-            if(ev.pointerCount==1)
-            {
-                if(stopScrollFlag==1)
-                {
-                    rMouseSender.mouseReport.hScroll=0
-                    rMouseSender.mouseReport.vScroll=0
-                    stopScrollFlag=0
-                }
+            if (ev.pointerCount == 1) {
+                if (scrollLock) {
+                    return false
+                } else {
+                    when (action) {
+                        MotionEvent.ACTION_DOWN -> {
+                            if (System.currentTimeMillis() - lastLeftClick < doubleClickTimeout) {
+                                doubleclickdown = true
+                                doubeLeftClickDownTime = System.currentTimeMillis()
+                                lastLeftClick = 0
+                            }
+                            previousX = ev.x;
+                            previousY = ev.y;
+                            downTimestamp = System.currentTimeMillis()
+                            moved = false
+                        }
+                        MotionEvent.ACTION_MOVE -> {
+                            var dx = -(previousX - ev.x)
+                            var dy = -(previousY - ev.y)
 
-            }
-
-            // prepend("onTouchEvent() ptrs:" + ev.getPointerCount() + " "
-            // + actionToString(action));
-            when (action) {
-                MotionEvent.ACTION_POINTER_DOWN -> {
-                    mPtrCount++
-                    if (ev.pointerCount > 1) {
-
-                        testerp1=ev.getPointerId(0)//remove at end of testing
-                        testerp2=ev.getPointerId(1)
-
-
-
-                        mSecStartTouchEventX = ev.getX(1)
-                        mSecStartTouchEventY = ev.getY(1)
-                        mPrimSecStartTouchDistance = distance(ev, 0, 1)
-                        if (ev.pointerCount == 2) possibleTwoFingerTapFlag = 1
-//                    if (mCurrentDownEvent != null)
-//                        mCurrentDownEvent.recycle()
-                        mCurrentDownEvent = MotionEvent.obtain(ev)
-
-                        //    if (System.currentTimeMillis() - downTimestamp > 50) {
-
-//                        if (!mHandler.hasMessages(TAP)) {
-//                            mHandler.sendEmptyMessageDelayed(
-//                                TAP,
-//                                DOUBLE_TAP_TIMEOUT
-//                            )
-//                        } else {
-//                            mHandler.removeMessages(TAP)
-//                            mHandler.sendEmptyMessageDelayed(
-//                                DOUBLE_TAP,
-//                                DOUBLE_TAP_TIMEOUT
-//                            )
-//                        }
-
-                        //        }
-
-                        downTimestamp = System.currentTimeMillis()
-
-                        // return true to prevent other actions.
-                        return true
+                            if (System.currentTimeMillis() - downTimestamp > singleClickTimeout || (abs(dx)) > 5 || abs(dy) > 5
+                            ) {
+                                moved = true
+                                rMouseSender.sendRelXY((dx*mouseAccuracy).roundToInt(), (dy*mouseAccuracy).roundToInt())
+                                previousX = ev.x
+                                previousY = ev.y
+                            }
+                        }
+                        MotionEvent.ACTION_UP -> {
+                            if (System.currentTimeMillis() - downTimestamp < singleClickTimeout && !moved && !doubleclickdown) {
+                                lastLeftClick = System.currentTimeMillis()
+                                rMouseSender.sendLeftClickOn()
+                                val timer = Timer()
+                                timer.schedule(timerTask {
+                                    if (!doubleclickdown) {
+                                        rMouseSender.sendLeftClickOff()
+                                    }
+                                }, doubleClickTimeout)
+                            } else if (doubleclickdown) {
+                                rMouseSender.sendLeftClickOff()
+                                if (System.currentTimeMillis() - doubeLeftClickDownTime < doubleClickTimeout) {
+                                    Thread.sleep(50)
+                                    rMouseSender.sendLeftClickOn()
+                                    Thread.sleep(50)
+                                    rMouseSender.sendLeftClickOff()
+                                    doubeLeftClickDownTime = 0
+                                }
+                                doubleclickdown = false
+                            }
+                        }
                     }
                 }
-                MotionEvent.ACTION_POINTER_UP -> mPtrCount--
-                MotionEvent.ACTION_DOWN -> {
-
-                    mPtrCount++
-
-                    mPossibleTwoFingerTapStartTime = System.currentTimeMillis()
-                }
-                MotionEvent.ACTION_UP -> {
-                    mPtrCount--
-
-                    if(possibleTwoFingerTapFlag == 1)
-                    {
-                        possibleTwoFingerTapFlag = 0
-
-                    if (mPtrCount == 0 && ((System.currentTimeMillis() - mPossibleTwoFingerTapStartTime) <= ViewConfiguration.getTapTimeout()) ) {
-
-                        disableSingleTapFlag =1
-                        Log.i("thisistwofinger", "two finger single tap is implemented")
-
-                        rMouseSender.sendRightClick()
+            } else if (ev.pointerCount == 2) {
+                when (action) {
+                    MotionEvent.ACTION_POINTER_DOWN -> {
+                        twoPointerDown = true
+                        potentialRightClickStartTime = System.currentTimeMillis()
+                        rMouseSender.mouseReport.setRelXY(0, 0)
+                        scrollLock = true
                     }
-
+                    MotionEvent.ACTION_POINTER_UP -> {
+                        twoPointerDown = false
+                        if (System.currentTimeMillis() - potentialRightClickStartTime < rightClickTimeout) {
+                            rMouseSender.sendRightClick()
+                            potentialRightClickStartTime = 0
+                        }
+                        rMouseSender.mouseReport.setRelXY(0, 0)
+                        rMouseSender.sendScroll(0, 0)
+                        var timer = Timer()
+                        timer.schedule(timerTask {
+                            scrollLock = false
+                        }, rightClickTimeout)
                     }
-
-
                 }
             }
         }
         return false
     }
-    override fun onDoubleTap(e: MotionEvent?): Boolean {
-        Log.i("doubleddht","this is on double tap $e")
 
+    override fun onDoubleTap(e: MotionEvent?): Boolean {
+        Log.i("doubleddht", "this is on double tap $e")
         return false
     }
 
     override fun onDoubleTapEvent(e: MotionEvent?): Boolean {
-        Log.i("doubleddhe","this is on double tap event $e")
-        if(mPtrCount==1)
-        {
-            if(e!=null) {
-                if (e.action == MotionEvent.ACTION_DOWN)
-                    Timer().schedule(150L) {
-                        if(mPtrCount==1)
-                        {
-                            notAConfirmedDoubleTapFlag=1;
-                            rMouseSender.sendLeftClickOn()
-                            Log.i("doubleddhtnew","this is on double tap and hold and also $DOUBLE_TAP_TIMEOUT and $e ")
-
-                        }
-                    }
-
-
-            }
-
-
-        }
-        if(mPtrCount==0)
-        {
-            if(e!=null) {
-                if (e.action == MotionEvent.ACTION_UP) {
-                    if (notAConfirmedDoubleTapFlag == 0) {
-                        rMouseSender.sendDoubleTapClick()
-                        Log.i("doubleddhtnew", "this is on double tap confirmed $e")
-                    } else {
-                        notAConfirmedDoubleTapFlag=0
-                        rMouseSender.sendLeftClickOff()
-
-
-                    }
-                }
-            }
-        }
 
         return false
     }
 
     override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
-        Log.i("doubleddhs","this is on single tap confirmed $e")
-        if(disableSingleTapFlag==1)
-        {
-            disableSingleTapFlag=0
-        }
-        else {
-            rMouseSender.sendTestClick()
-        }
+        Log.i("doubleddhs", "this is on single tap confirmed $e")
+
         return false
     }
 
     override fun onSingleTapUp(e: MotionEvent?): Boolean {
-        Log.i("doubleddhu","this is on single tap up $e")
+        Log.i("doubleddhu", "this is on single tap up $e")
         //
+        return true
+    }
+
+    override fun onScroll(
+        e1: MotionEvent?,
+        e2: MotionEvent?,
+        distanceX: Float,
+        distanceY: Float
+    ): Boolean {
+        if (twoPointerDown) {
+
+
+            if (System.currentTimeMillis() - potentialRightClickStartTime > 100) {
+                rMouseSender.mouseReport.setRelXY(0, 0)
+                rMouseSender.sendScroll(
+                    -((distanceY) * scrollAccuracy).roundToInt(),
+                    ((distanceX) * scrollAccuracy).roundToInt()
+                )
+                rMouseSender.sendScroll(0,0)
+            }
+        }
         return true
     }
 
     override fun onDown(e: MotionEvent?): Boolean {
         Log.d("ggkjh", "onDown: $e")
-       return false
+        return false
 
     }
 
-    override fun onFling(e1: MotionEvent?, e2: MotionEvent?, velocityX: Float, velocityY: Float): Boolean {
-       Log.i("this is a fling e1 ","$e1")
-        Log.i("this is a fling e2 ","$e2")
-        Log.i("this is a fling vx ","$velocityX")
-        Log.i("this is a fling vy ","$velocityY")
-
+    override fun onFling(
+        e1: MotionEvent?,
+        e2: MotionEvent?,
+        velocityX: Float,
+        velocityY: Float
+    ): Boolean {
+        Log.i("this is a fling e1 ", "$e1")
+        Log.i("this is a fling e2 ", "$e2")
+        Log.i("this is a fling vx ", "$velocityX")
+        Log.i("this is a fling vy ", "$velocityY")
 
         return false
     }
 
-    override fun onScroll(e1: MotionEvent?, e2: MotionEvent?, distanceX: Float, distanceY: Float): Boolean {
-
-
-        if(mPtrCount==2) {
-
-//            var dy :Int = distanceY.roundToInt()
-//            if (dy> 127) dy=127
-//            else if (dy< -127) dy=-127
-//
-//            var dx :Int = distanceX.roundToInt()
-//            if (dx> 127) dx=127
-//            else if (dx< -127) dx=-127
-//
-//
-//            rMouseSender.sendScroll(dy,dx)
-
-            var dy: Int =0
-            var dx :Int =0
-            if(distanceY>0) dy= -1
-
-            else if(distanceY<0) dy = 1
-            else if(distanceY==0f) dy=0
-            //else dy=0
-
-            if(distanceX>2) dx= 1
-
-            else if(distanceX<-2) dx = -1
-            //else if(distanceX==0f) dx=0
-            else dx=0
-
-
-            if (dx > 127) dx = 127
-            else if (dx < -127) dx = -127
-
-
-
-
-
-
-
-                rMouseSender.sendScroll(dy, dx)
-
-
-                stopScrollFlag=1
-//            if(e1?.getPointerId(0)==testerp1) {
-//
-//                Log.i("scroller", "This is e1 as $e1")
-//
-//                Log.i("scroller", "This is e2 as $e2")
-//                Log.i("scroller", "This is distanceX as $distanceX")
-//                Log.i("scroller", "This is distanceY as $distanceY")
-//            }
-//            else if(e1?.getPointerId(1)==testerp2 )
-//            {
-//                Log.i("scrollex", "This is e1 as $e1")
-//
-//                Log.i("scrollex", "This is e2 as $e2")
-//                Log.i("scrollex", "This is distanceX as $distanceX")
-//                Log.i("scrollex", "This is distanceY as $distanceY")
-//            }
-
-
-        }
-        return false
-    }
 
     override fun onLongPress(e: MotionEvent?) {
 
@@ -283,15 +213,5 @@ class GestureDetectListener(val rMouseSender : RelativeMouseSender) : GestureDet
 
     }
 
-    fun distance(event: MotionEvent, first: Int, second: Int): Float {
-        if (event.pointerCount >= 2) {
-            val x = event.getX(first) - event.getX(second)
-            val y = event.getY(first) - event.getY(second)
-
-            return Math.sqrt((x * x + y * y).toDouble()).toFloat()
-        } else {
-            return 0f
-        }
-    }
 
 }

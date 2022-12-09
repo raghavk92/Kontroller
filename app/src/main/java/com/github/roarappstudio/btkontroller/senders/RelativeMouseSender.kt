@@ -37,9 +37,6 @@ open class RelativeMouseSender(
         sendMouse()
         mouseReport.leftButton = false
         sendMouse()
-//        Timer().schedule(20L) {
-//
-//        }
     }
     fun sendDoubleTapClick() {
         mouseReport.leftButton = true
@@ -54,34 +51,39 @@ open class RelativeMouseSender(
                     mouseReport.leftButton = false
                     sendMouse()
                 }
-
-
-
-
             }
         }
     }
 
-
-
     fun sendLeftClickOn() {
+        mouseReport.setRelXY(0,0)
+        mouseReport.hScroll=0
+        mouseReport.vScroll=0
         mouseReport.leftButton = true
         sendMouse()
-
-
     }
     fun sendLeftClickOff() {
+        mouseReport.setRelXY(0,0)
+        mouseReport.hScroll=0
+        mouseReport.vScroll=0
         mouseReport.leftButton = false
         sendMouse()
 
     }
     fun sendRightClick() {
+        mouseReport.setRelXY(0,0)
+        mouseReport.hScroll=0
+        mouseReport.vScroll=0
         mouseReport.rightButton = true
         sendMouse()
-        Timer().schedule(50L) {
-            mouseReport.rightButton= false
-            sendMouse()
-        }
+        Thread.sleep(50)
+        mouseReport.rightButton= false
+        sendMouse()
+    }
+
+    fun sendRelXY(dx: Int, dy: Int){
+        mouseReport.setRelXY(dx,dy)
+        hidDevice.sendReport(host, 4, mouseReport.bytes)
     }
 
     fun sendScroll(vscroll:Int,hscroll:Int){
@@ -92,40 +94,14 @@ open class RelativeMouseSender(
         hscrollmutable=hscroll
         vscrollmutable= vscroll
 
-//        var dhscroll= hscrollmutable-previoushscroll
-//        var dvscroll= vscrollmutable-previousvscroll
-//
-//        dhscroll = Math.abs(dhscroll)
-//        dvscroll = Math.abs(dvscroll)
-//        if(dvscroll>=dhscroll)
-//        {
-//            hscrollmutable=0
-//
-//        }
-//        else
-//        {
-//            vscrollmutable=0
-//        }
         var vs:Int =(vscrollmutable)
         var hs:Int =(hscrollmutable)
-        Log.i("vscroll ",vscroll.toString())
-        Log.i("vs ",vs.toString())
-        Log.i("hscroll ",hscroll.toString())
-        Log.i("hs ",hs.toString())
-
 
         mouseReport.vScroll=vs.toByte()
         mouseReport.hScroll= hs.toByte()
 
         sendMouse()
-
-//        previousvscroll=-1*vscroll
-//        previoushscroll=hscroll
-
-
     }
-
-
 
 
     companion object {
