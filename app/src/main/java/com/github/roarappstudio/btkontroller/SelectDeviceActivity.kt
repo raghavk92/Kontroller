@@ -2,10 +2,7 @@ package com.github.roarappstudio.btkontroller
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.ClipData.Item
 import android.content.Context
-import android.content.SharedPreferences
-import android.content.SharedPreferences.Editor
 import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.os.Bundle
@@ -13,8 +10,6 @@ import android.os.Handler
 import android.util.Log
 import android.view.*
 import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import android.widget.Toast
 import com.github.roarappstudio.btkontroller.extraLibraries.CustomGestureDetector
 import com.github.roarappstudio.btkontroller.listeners.CompositeListener
 import com.github.roarappstudio.btkontroller.listeners.GestureDetectListener
@@ -22,9 +17,6 @@ import com.github.roarappstudio.btkontroller.senders.KeyboardSender
 import com.github.roarappstudio.btkontroller.senders.RelativeMouseSender
 import com.github.roarappstudio.btkontroller.senders.SensorSender
 import kotlinx.android.synthetic.main.kontroller_main_activity.*
-import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEvent
-import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEventListener
-
 import org.jetbrains.anko.*
 import java.util.*
 import kotlin.concurrent.timerTask
@@ -106,10 +98,12 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
             mainHandler.post(object : Runnable {
                 override fun run() {
                     rKeyboardSender = KeyboardSender(hidd, device)
-                    val rMouseSender = RelativeMouseSender(hidd, device)
+                    var rMouseSenderLocal = RelativeMouseSender(hidd, device)
+                    rMouseSender=rMouseSenderLocal
+
                     Log.i("TAGdddUI", Thread.currentThread().getName());
                     val mDetector =
-                        CustomGestureDetector(getContext(), GestureDetectListener(rMouseSender))
+                        CustomGestureDetector(getContext(), GestureDetectListener(rMouseSenderLocal))
                     val gTouchListener = object : View.OnTouchListener {
 
                         override fun onTouch(v: View?, event: MotionEvent?): Boolean {
@@ -125,21 +119,21 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
                     bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_connected)
                     bluetoothStatus?.tooltipText = "App Connected via bluetooth"
 
-                    sender = SensorSender(hidd, device, rMouseSender)
+                    sender = SensorSender(hidd, device, rMouseSenderLocal)
 
                     left_button.setOnTouchListener { view: View, motionEvent: MotionEvent ->
                         if (motionEvent.action == MotionEvent.ACTION_DOWN) {
-                            rMouseSender.sendLeftClickOn();
+                            rMouseSenderLocal.sendLeftClickOn();
                         } else if (motionEvent.action == MotionEvent.ACTION_UP) {
-                            rMouseSender.sendLeftClickOff()
+                            rMouseSenderLocal.sendLeftClickOff()
                         }
                         true
                     }
                     right_button.setOnTouchListener {view: View?, motionEvent: MotionEvent? ->
                         if (motionEvent?.action == MotionEvent.ACTION_DOWN) {
-                            rMouseSender.sendRightClickOn();
+                            rMouseSenderLocal.sendRightClickOn();
                         } else if (motionEvent?.action == MotionEvent.ACTION_UP) {
-                            rMouseSender.sendRightClickOff()
+                            rMouseSenderLocal.sendRightClickOff()
                         }
                         true
                     }
@@ -249,7 +243,34 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
         } else return super.onKeyUp(keyCode, event)
     }
 
+    override fun dispatchKeyEvent(event: KeyEvent?): Boolean {
+        val action = event!!.action
+        val keyCode = event.keyCode
+        return when (keyCode) {
+            KeyEvent.KEYCODE_VOLUME_UP -> {
+                println("action")
+                if (action == KeyEvent.ACTION_DOWN) {
 
+                        rMouseSender?.sendLeftClickOn()
+
+                }else if(action== KeyEvent.ACTION_UP){
+
+                        rMouseSender?.sendLeftClickOff()
+
+                }
+                true
+            }
+            KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                if (action == KeyEvent.ACTION_DOWN) {
+                    rMouseSender?.sendRightClickOn()
+                }else if(action==KeyEvent.ACTION_UP){
+                    rMouseSender?.sendRightClickOff()
+                }
+                true
+            }
+            else -> super.dispatchKeyEvent(event)
+        }
+    }
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.action_keyboard -> {
             val sharedPref =  getPreferences(MODE_PRIVATE)
@@ -338,7 +359,6 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
                     putBoolean(getString(R.string.auto_pair_flag), BluetoothController.autoPairFlag)
                     commit()
                 }
-
             } else {
                 item.isChecked = true
                 BluetoothController.autoPairFlag = true
