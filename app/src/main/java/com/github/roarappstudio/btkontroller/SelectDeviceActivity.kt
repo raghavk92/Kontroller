@@ -154,11 +154,8 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
                             sensor,
                             SensorManager.SENSOR_DELAY_GAME
                         )
-
                     }
-
                 }
-
             })
             Log.i("TAGddd", Thread.currentThread().getName());
         }
@@ -250,13 +247,9 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 println("action")
                 if (action == KeyEvent.ACTION_DOWN) {
-
                         rMouseSender?.sendLeftClickOn()
-
                 }else if(action== KeyEvent.ACTION_UP){
-
                         rMouseSender?.sendLeftClickOff()
-
                 }
                 true
             }
