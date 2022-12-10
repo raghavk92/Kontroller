@@ -69,6 +69,7 @@ class GestureDetectListener(val rMouseSender: RelativeMouseSender) :
                     when (action) {
                         MotionEvent.ACTION_DOWN -> {
                             if (System.currentTimeMillis() - lastLeftClick < doubleClickTimeout) {
+                                Log.d("GestureDetectListener","Hold down click")
                                 doubleclickdown = true
                                 doubeLeftClickDownTime = System.currentTimeMillis()
                                 lastLeftClick = 0
@@ -97,12 +98,14 @@ class GestureDetectListener(val rMouseSender: RelativeMouseSender) :
                                 val timer = Timer()
                                 timer.schedule(timerTask {
                                     if (!doubleclickdown) {
+                                        Log.d("GestureDetectListener","Send left click")
                                         rMouseSender.sendLeftClickOff()
                                     }
                                 }, doubleClickTimeout)
                             } else if (doubleclickdown) {
                                 rMouseSender.sendLeftClickOff()
                                 if (System.currentTimeMillis() - doubeLeftClickDownTime < doubleClickTimeout) {
+                                    Log.d("GestureDetectListener","Send left double click")
                                     Thread.sleep(50)
                                     rMouseSender.sendLeftClickOn()
                                     Thread.sleep(50)
@@ -117,14 +120,15 @@ class GestureDetectListener(val rMouseSender: RelativeMouseSender) :
             } else if (ev.pointerCount == 2) {
                 when (action) {
                     MotionEvent.ACTION_POINTER_DOWN -> {
-                        twoPointerDown = true
+                        twoPointerDown = true // Set two pointer down, from now on onScroll should react to movements
                         potentialRightClickStartTime = System.currentTimeMillis()
                         rMouseSender.mouseReport.setRelXY(0, 0)
                         scrollLock = true
                     }
                     MotionEvent.ACTION_POINTER_UP -> {
                         twoPointerDown = false
-                        if (System.currentTimeMillis() - potentialRightClickStartTime < rightClickTimeout) {
+                        if (System.currentTimeMillis() - potentialRightClickStartTime < rightClickTimeout) { // Send Right Click
+                            Log.d("GestureDetectListener","Send right click")
                             rMouseSender.sendRightClick()
                             potentialRightClickStartTime = 0
                         }
@@ -170,8 +174,6 @@ class GestureDetectListener(val rMouseSender: RelativeMouseSender) :
         distanceY: Float
     ): Boolean {
         if (twoPointerDown) {
-
-
             if (System.currentTimeMillis() - potentialRightClickStartTime > 100) {
                 rMouseSender.mouseReport.setRelXY(0, 0)
                 rMouseSender.sendScroll(

@@ -2,24 +2,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     <!-- "Mark Favorite", should appear as action button if possible -->
 
-
-
     <item
             android:id="@+id/check_modifier_state"
             android:title="@string/action_check"
-
             android:tooltipText="@string/action_tool_tip"
             android:showAsAction="always"
-
-
     />
     <item
-        android:id="@+id/change_trackpad_mode"
-        android:title="@string/change_trackpad_mode"
-        android:icon="@drawable/rotate"
-        android:tooltipText="@string/change_mode_tooltip"
-        android:showAsAction="always"
-        />
+            android:id="@+id/change_trackpad_mode"
+            android:title="(G)"
+            android:tooltipText="@string/change_mode_tooltip"
+            android:showAsAction="always" />
 
     <item
             android:id="@+id/ble_app_connection_status"
@@ -27,40 +20,28 @@
             android:icon="@drawable/ic_action_app_not_connected"
             android:tooltipText="@string/action_ble_status_tool_tip"
             android:showAsAction="always"
-
-
     />
-
     <item
             android:id="@+id/action_keyboard"
             android:icon="@drawable/ic_action_keyboard"
             android:title="@string/action_keyboard_title"
             android:showAsAction="always"
            />
-
-
-
     <!-- Settings, should always be in the overflow -->
-
     <item android:id="@+id/action_disconnect"
           android:title="@string/action_disconnect"
           android:showAsAction="never"
-
     />
     <item
             android:id="@+id/action_autopair"
             android:title="@string/action_autopair"
             android:checkable="true"
             android:showAsAction="never"
-
             />
 
     <item android:id="@+id/action_screen_on"
           android:title="@string/title_screen_on"
           android:checkable="true"
           android:showAsAction="never"
-
     />
-
-
 </menu>

@@ -2,7 +2,10 @@ package com.github.roarappstudio.btkontroller
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ClipData.Item
 import android.content.Context
+import android.content.SharedPreferences
+import android.content.SharedPreferences.Editor
 import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.os.Bundle
@@ -10,14 +13,21 @@ import android.os.Handler
 import android.util.Log
 import android.view.*
 import android.view.inputmethod.InputMethodManager
+import android.widget.Button
+import android.widget.Toast
+import com.github.roarappstudio.btkontroller.extraLibraries.CustomGestureDetector
 import com.github.roarappstudio.btkontroller.listeners.CompositeListener
 import com.github.roarappstudio.btkontroller.listeners.GestureDetectListener
+import com.github.roarappstudio.btkontroller.senders.KeyboardSender
 import com.github.roarappstudio.btkontroller.senders.RelativeMouseSender
 import com.github.roarappstudio.btkontroller.senders.SensorSender
-import org.jetbrains.anko.*
-import com.github.roarappstudio.btkontroller.extraLibraries.CustomGestureDetector
-import com.github.roarappstudio.btkontroller.senders.KeyboardSender
+import kotlinx.android.synthetic.main.kontroller_main_activity.*
+import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEvent
+import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEventListener
 
+import org.jetbrains.anko.*
+import java.util.*
+import kotlin.concurrent.timerTask
 
 class SelectDeviceActivity : Activity(), KeyEvent.Callback {
 
@@ -34,27 +44,25 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
     private var rMouseSender: RelativeMouseSender? = null
     private var rKeyboardSender: KeyboardSender? = null
 
-    private var trackpad_mode_enabled: Boolean = true
+
+    /**
+     * If true Gyroscope control is disabled
+     */
+    private var trackpad_mode_enabled: Boolean = false
+
+    /**
+     * If true Keyboard should be displayed
+     */
+    private var display_keyboard: Boolean = true
+
+    private var sensor : Sensor? = null
+
 
 
     @SuppressLint("ResourceType")
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        verticalLayout {
-            // justify your toolbar
-
-            linearLayout = this
-            id = 0x69
-
-            textView() {
-                id = R.id.mouseView
-                background = getDrawable(R.drawable.view_border)
-                text = "Trackpad"
-                gravity = Gravity.CENTER
-            }.lparams(width = matchParent, height = matchParent)
-
-        }
+        setContentView(R.layout.kontroller_main_activity)
     }
     fun getContext(): Context {
         return this
@@ -62,10 +70,16 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
 
 
     public override fun onStart() {
+
         super.onStart()
         bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_not_connected)
         bluetoothStatus?.tooltipText = "App not connected via bluetooth"
-        val sharedPref = this.getPreferences(Context.MODE_PRIVATE)
+
+        val sharedPref =  getPreferences(MODE_PRIVATE)
+
+        // Loading shared preferences
+        trackpad_mode_enabled = sharedPref.getBoolean(getString(R.string.track_pad_mode_flag),true)
+        display_keyboard = sharedPref.getBoolean(getString(R.string.keyboard_enabled),true)
 
         BluetoothController.autoPairFlag =
             sharedPref.getBoolean(getString(R.string.auto_pair_flag), true)
@@ -113,8 +127,42 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
 
                     sender = SensorSender(hidd, device, rMouseSender)
 
-                    val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
-                    sensorManager.registerListener(sender, sensor, SensorManager.SENSOR_DELAY_GAME)
+                    left_button.setOnTouchListener { view: View, motionEvent: MotionEvent ->
+                        if (motionEvent.action == MotionEvent.ACTION_DOWN) {
+                            rMouseSender.sendLeftClickOn();
+                        } else if (motionEvent.action == MotionEvent.ACTION_UP) {
+                            rMouseSender.sendLeftClickOff()
+                        }
+                        true
+                    }
+                    right_button.setOnTouchListener {view: View?, motionEvent: MotionEvent? ->
+                        if (motionEvent?.action == MotionEvent.ACTION_DOWN) {
+                            rMouseSender.sendRightClickOn();
+                        } else if (motionEvent?.action == MotionEvent.ACTION_UP) {
+                            rMouseSender.sendRightClickOff()
+                        }
+                        true
+                    }
+
+                    middle_button.setOnTouchListener{view: View?, motionEvent: MotionEvent? ->
+                        if (motionEvent?.action == MotionEvent.ACTION_DOWN) {
+                            sender?.scrollModeOn()
+                        } else if (motionEvent?.action == MotionEvent.ACTION_UP) {
+                            sender?.scrollModeOff()
+                        }
+                        true
+                    }
+
+                    sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+                    if(trackpad_mode_enabled == false) {
+                        sensorManager.registerListener(
+                            sender,
+                            sensor,
+                            SensorManager.SENSOR_DELAY_GAME
+                        )
+
+                    }
+
                 }
 
             })
@@ -132,10 +180,7 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
             })
         }
 
-
     }
-
-
 
     public override fun onPause() {
         super.onPause()
@@ -156,24 +201,32 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
 
         bluetoothStatus = menu?.findItem(R.id.ble_app_connection_status)
         autoPairMenuItem = menu?.findItem(R.id.action_autopair)
+        var trackpadModeEnabledMenuItem = menu?.findItem(R.id.change_trackpad_mode)
+        if(trackpad_mode_enabled==true){
+            trackpadModeEnabledMenuItem?.title = "(T)"
+            middle_button.visibility=View.GONE
+        }
 
         screenOnMenuItem = menu?.findItem(R.id.action_screen_on)
         val sharedPref = this.getPreferences(Context.MODE_PRIVATE)
-
         screenOnMenuItem?.isChecked =
             sharedPref.getBoolean(getString(R.string.screen_on_flag), false);
-
         autoPairMenuItem?.isChecked =
             sharedPref.getBoolean(getString(R.string.auto_pair_flag), false)
 
+        var timer = Timer()
+
+        timer.schedule(timerTask { //TODO I've no clue where to put this without a timer, if the keyboard should be enabled on startup.
+            if(display_keyboard==true) {
+                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0)
+            }
+        },150)
         return super.onCreateOptionsMenu(menu)
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-
         Log.d("keyeventdown_tag", "desc is - $event")
-
-
         if (rKeyboardSender != null && event != null) {
             var rvalue: Boolean? = false
 
@@ -181,14 +234,10 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
             else return super.onKeyDown(keyCode, event)
 
         } else return super.onKeyDown(keyCode, event)
-
-
     }
 
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
-
-
         Log.d("keyeventup_tag", "desc is - $event")
 
         if (rKeyboardSender != null && event != null) {
@@ -197,32 +246,50 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
 
             if (rvalue == true) return true
             else return super.onKeyDown(keyCode, event)
-
         } else return super.onKeyUp(keyCode, event)
-
-
     }
 
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.action_keyboard -> {
+            val sharedPref =  getPreferences(MODE_PRIVATE)
+            val editor = sharedPref.edit()
             val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
+            imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0)
+
+            display_keyboard=!display_keyboard
+            println(display_keyboard)
+            editor.putBoolean(getString(R.string.keyboard_enabled), display_keyboard)
+            editor.commit()
             true
         }
 
         R.id.change_trackpad_mode -> {
-            trackpad_mode_enabled = !trackpad_mode_enabled
+            val sharedPref =  getPreferences(MODE_PRIVATE)
+            val editor = sharedPref.edit()
+            if (trackpad_mode_enabled) { // Enable Gyroscope
+                item.title = "(G)"
+                if(sensor!=null){
+                    sensorManager.registerListener(sender, sensor, SensorManager.SENSOR_DELAY_GAME)
+                }
+                rKeyboardSender?.sendNullKeys()
+                middle_button.visibility=View.VISIBLE
+
+            } else {
+                if(sensor!=null){ // Disable Gyroscope
+                    sensorManager.unregisterListener(sender)
+                }
+                item.title = "(T)"
+                middle_button.visibility=View.GONE
+            }
+
+            trackpad_mode_enabled=!trackpad_mode_enabled
+            editor.putBoolean(getString(R.string.track_pad_mode_flag), trackpad_mode_enabled)
+            editor.commit()
             true
         }
 
         R.id.check_modifier_state -> {
-
-//            item.isChecked = !item.isChecked
-//            Log.i("bbbb","${item.isChecked}")
-//            if(item.isChecked)
-//                modifier_checked_state=1
-//            else modifier_checked_state=0
             if (modifier_checked_state == 1) {
                 modifier_checked_state = 0
                 item.title = "(N)"
@@ -231,7 +298,6 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
             } else {
                 modifier_checked_state = 1
                 item.title = "(P)"
-
             }
             true
         }
@@ -243,7 +309,7 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
         }
 
         R.id.action_screen_on -> {
-            val sharedPref = this?.getPreferences(Context.MODE_PRIVATE)
+            val sharedPref =  getPreferences(MODE_PRIVATE)
             if (item.isChecked) {
                 item.isChecked = false
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -263,7 +329,7 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
         }
 
         R.id.action_autopair -> {
-            val sharedPref = this?.getPreferences(Context.MODE_PRIVATE)
+            val sharedPref =  getPreferences(MODE_PRIVATE)
             if (item.isChecked) {
                 item.isChecked = false
                 BluetoothController.autoPairFlag = false
@@ -288,10 +354,9 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
             true
         }
 
-
         else -> {
             // If we got here, the user's action was not recognized.
-            // Invoke the superclass to handle it.
+            //
             super.onOptionsItemSelected(item)
         }
     }

@@ -56,24 +56,18 @@ open class RelativeMouseSender(
     }
 
     fun sendLeftClickOn() {
-        mouseReport.setRelXY(0,0)
-        mouseReport.hScroll=0
-        mouseReport.vScroll=0
+        mouseReport.reset()
         mouseReport.leftButton = true
         sendMouse()
     }
     fun sendLeftClickOff() {
-        mouseReport.setRelXY(0,0)
-        mouseReport.hScroll=0
-        mouseReport.vScroll=0
+        mouseReport.reset()
         mouseReport.leftButton = false
         sendMouse()
 
     }
     fun sendRightClick() {
-        mouseReport.setRelXY(0,0)
-        mouseReport.hScroll=0
-        mouseReport.vScroll=0
+        mouseReport.reset()
         mouseReport.rightButton = true
         sendMouse()
         Thread.sleep(50)
@@ -86,13 +80,21 @@ open class RelativeMouseSender(
         hidDevice.sendReport(host, 4, mouseReport.bytes)
     }
 
-    fun sendScroll(vscroll:Int,hscroll:Int){
+    fun sendScroll(
+        vscroll:Int,hscroll:Int){
 
+        mouseReport.reset()
         var hscrollmutable=0
         var vscrollmutable =0
 
         hscrollmutable=hscroll
         vscrollmutable= vscroll
+
+
+        if(hscrollmutable > 127) hscrollmutable=127
+        if(vscrollmutable > 127) vscrollmutable=127
+        if(hscrollmutable < -127) hscrollmutable=-127
+        if(vscrollmutable < -127) vscrollmutable=-127
 
         var vs:Int =(vscrollmutable)
         var hs:Int =(hscrollmutable)
@@ -103,6 +105,17 @@ open class RelativeMouseSender(
         sendMouse()
     }
 
+    fun sendRightClickOff() {
+        mouseReport.reset()
+        mouseReport.rightButton = false
+        sendMouse()
+    }
+
+    fun sendRightClickOn() {
+        mouseReport.reset()
+        mouseReport.rightButton = true
+        sendMouse()
+    }
 
     companion object {
         const val TAG = "TrackPadSender"

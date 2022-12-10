@@ -13,4 +13,6 @@
     <string name="screen_on_flag">screenonfl</string>
     <string name="change_mode_tooltip">Toggle trackpad mode</string>
     <string name="change_trackpad_mode">Change trackpad mode</string>
+    <string name="track_pad_mode_flag">trackpadModeEnabled</string>
+    <string name="keyboard_enabled">keyboardEnabled</string>
 </resources>
