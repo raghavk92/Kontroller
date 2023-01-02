@@ -1,8 +1,10 @@
 package com.github.roarappstudio.btkontroller
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.os.Bundle
@@ -10,6 +12,7 @@ import android.os.Handler
 import android.util.Log
 import android.view.*
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import com.github.roarappstudio.btkontroller.extraLibraries.CustomGestureDetector
 import com.github.roarappstudio.btkontroller.listeners.CompositeListener
 import com.github.roarappstudio.btkontroller.listeners.GestureDetectListener
@@ -20,6 +23,7 @@ import kotlinx.android.synthetic.main.kontroller_main_activity.*
 import org.jetbrains.anko.*
 import java.util.*
 import kotlin.concurrent.timerTask
+
 
 class SelectDeviceActivity : Activity(), KeyEvent.Callback {
 
@@ -49,47 +53,11 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
 
     private var sensor : Sensor? = null
 
-
-
-    @SuppressLint("ResourceType")
-    public override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.kontroller_main_activity)
-    }
-    fun getContext(): Context {
-        return this
-    }
-
-
-    public override fun onStart() {
-
-        super.onStart()
-        bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_not_connected)
-        bluetoothStatus?.tooltipText = "App not connected via bluetooth"
-
-        val sharedPref =  getPreferences(MODE_PRIVATE)
-
-        // Loading shared preferences
-        trackpad_mode_enabled = sharedPref.getBoolean(getString(R.string.track_pad_mode_flag),true)
-        display_keyboard = sharedPref.getBoolean(getString(R.string.keyboard_enabled),true)
-
-        BluetoothController.autoPairFlag =
-            sharedPref.getBoolean(getString(R.string.auto_pair_flag), true)
-        autoPairMenuItem?.isChecked =
-            sharedPref.getBoolean(getString(R.string.auto_pair_flag), false)
-
-        screenOnMenuItem?.isChecked =
-            sharedPref.getBoolean(getString(R.string.screen_on_flag), false)
-
-        if (sharedPref.getBoolean(getString(R.string.screen_on_flag), false)) window.addFlags(
-            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
-        )
-        else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-
+    public fun onPermissionsGranted(){
         val trackPadView = find<View>(R.id.mouseView)
 
         BluetoothController.init(this)
+
 
         BluetoothController.getSender { hidd, device ->
             Log.wtf("weiufhas", "Callback called")
@@ -173,6 +141,30 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
 
     }
 
+    @SuppressLint("ResourceType")
+    public override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.kontroller_main_activity)
+    }
+    fun getContext(): Context {
+        return this
+    }
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String?>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        // Loading shared preferences
+        for (j in grantResults){
+            if (j!=PackageManager.PERMISSION_GRANTED){
+                break
+            }
+        }
+
+       onPermissionsGranted()
+    }
+
     public override fun onPause() {
         super.onPause()
 
@@ -214,6 +206,54 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
             }
         },150)
         return super.onCreateOptionsMenu(menu)
+    }
+    public fun checkPermissions(){
+        if(checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN)!= PackageManager.PERMISSION_GRANTED
+            || checkSelfPermission(Manifest.permission.BLUETOOTH_ADVERTISE)!= PackageManager.PERMISSION_GRANTED
+            || checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)!= PackageManager.PERMISSION_GRANTED
+            || checkSelfPermission(Manifest.permission.BLUETOOTH_ADMIN)!= PackageManager.PERMISSION_GRANTED
+        )
+             requestPermissions(
+                arrayOf(
+                    Manifest.permission.BLUETOOTH_CONNECT,
+                    Manifest.permission.BLUETOOTH_ADVERTISE,
+                    Manifest.permission.BLUETOOTH_SCAN,
+                    Manifest.permission.BLUETOOTH_ADMIN
+                ),
+                100
+             )
+        else{
+            onPermissionsGranted();
+        }
+    }
+
+    public override fun onStart() {
+
+        super.onStart()
+
+        bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_not_connected)
+        bluetoothStatus?.tooltipText = "App not connected via bluetooth"
+
+        val sharedPref =  getPreferences(MODE_PRIVATE)
+        trackpad_mode_enabled = sharedPref.getBoolean(getString(R.string.track_pad_mode_flag),true)
+        display_keyboard = sharedPref.getBoolean(getString(R.string.keyboard_enabled),true)
+
+        BluetoothController.autoPairFlag =
+            sharedPref.getBoolean(getString(R.string.auto_pair_flag), true)
+        autoPairMenuItem?.isChecked =
+            sharedPref.getBoolean(getString(R.string.auto_pair_flag), false)
+
+        screenOnMenuItem?.isChecked =
+            sharedPref.getBoolean(getString(R.string.screen_on_flag), false)
+
+        if (sharedPref.getBoolean(getString(R.string.screen_on_flag), false)) window.addFlags(
+            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+        )
+        else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        checkPermissions()
+
+
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -316,7 +356,9 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
             true
         }
         R.id.action_disconnect -> {
+
             BluetoothController.btHid?.disconnect(BluetoothController.hostDevice)
+
             bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_not_connected)
             bluetoothStatus?.tooltipText = "App not connected via bluetooth"
             true
@@ -355,10 +397,12 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
             } else {
                 item.isChecked = true
                 BluetoothController.autoPairFlag = true
-                if (BluetoothController.btHid?.getConnectionState(BluetoothController.mpluggedDevice) == 0 && BluetoothController.mpluggedDevice != null && BluetoothController.autoPairFlag == true) {
-                    BluetoothController.btHid?.connect(BluetoothController.mpluggedDevice)
-                    //hostDevice.toString()
-                }
+
+                    if (BluetoothController.btHid?.getConnectionState(BluetoothController.mpluggedDevice) == 0 && BluetoothController.mpluggedDevice != null && BluetoothController.autoPairFlag == true) {
+                        BluetoothController.btHid?.connect(BluetoothController.mpluggedDevice)
+                        //hostDevice.toString()
+                    }
+
                 with(sharedPref.edit()) {
                     putBoolean(getString(R.string.auto_pair_flag), BluetoothController.autoPairFlag)
                     commit()

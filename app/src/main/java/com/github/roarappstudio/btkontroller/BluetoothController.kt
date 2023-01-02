@@ -1,7 +1,9 @@
 package com.github.roarappstudio.btkontroller
 
+import android.Manifest
 import android.bluetooth.*
 import android.content.Context
+import android.content.pm.PackageManager
 import android.util.Log
 import com.github.roarappstudio.btkontroller.reports.FeatureReport
 
@@ -93,6 +95,7 @@ object BluetoothController : BluetoothHidDevice.Callback(), BluetoothProfile.Ser
             return
         }
         this.btHid = btHid
+
         btHid.registerApp(sdpRecord, null, qosOut, { it.run() }, this)//--
         btAdapter.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE, 300000)
     }
@@ -144,6 +147,9 @@ object BluetoothController : BluetoothHidDevice.Callback(), BluetoothProfile.Ser
                 )
             )
             Log.d("paired d", "paired devices are : $pairedDevices")
+            if(pairedDevices?.size ==0){
+                return
+            }
             Log.d("paired d", "${btHid?.getConnectionState(pairedDevices?.get(0))}")
             mpluggedDevice = pluggedDevice
             if (btHid?.getConnectionState(pluggedDevice) == 0 && pluggedDevice != null && autoPairFlag == true) {
