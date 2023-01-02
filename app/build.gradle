@@ -45,5 +45,8 @@ dependencies {
     implementation "org.jetbrains.anko:anko-sdk25:$anko_version"
     implementation 'com.chibatching.kotpref:kotpref:2.6.0'
     implementation 'com.android.support:localbroadcastmanager:28.0.0'
+    implementation 'org.lsposed.hiddenapibypass:hiddenapibypass:2.0'
+
+
 
 }

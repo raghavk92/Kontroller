@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -20,7 +21,9 @@ import com.github.roarappstudio.btkontroller.senders.KeyboardSender
 import com.github.roarappstudio.btkontroller.senders.RelativeMouseSender
 import com.github.roarappstudio.btkontroller.senders.SensorSender
 import kotlinx.android.synthetic.main.kontroller_main_activity.*
+
 import org.jetbrains.anko.*
+import org.lsposed.hiddenapibypass.HiddenApiBypass
 import java.util.*
 import kotlin.concurrent.timerTask
 
@@ -161,8 +164,9 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
                 break
             }
         }
-
-       onPermissionsGranted()
+        if(grantResults.size>1) {
+            onPermissionsGranted()
+        }
     }
 
     public override fun onPause() {
@@ -227,9 +231,16 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
         }
     }
 
+
+
     public override fun onStart() {
 
         super.onStart()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            HiddenApiBypass.addHiddenApiExemptions("L");
+        }
+
 
         bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_not_connected)
         bluetoothStatus?.tooltipText = "App not connected via bluetooth"
