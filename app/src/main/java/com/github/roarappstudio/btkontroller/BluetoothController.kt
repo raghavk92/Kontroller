@@ -99,7 +99,7 @@ object BluetoothController : BluetoothHidDevice.Callback(), BluetoothProfile.Ser
         btHid.registerApp(sdpRecord, null, qosOut, { it.run() }, this)//--
 
 
-        btAdapter.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE, 300000)
+        //btAdapter.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE, 300000)
     }
 
 
