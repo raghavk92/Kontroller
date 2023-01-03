@@ -18,6 +18,9 @@ open class RelativeMouseSender(
     var previoushscroll :Int =0
 
 
+    var leftClick = false
+    var rightClick = false
+
     protected open fun sendMouse() {
         if (!hidDevice.sendReport(host, ScrollableTrackpadMouseReport.ID, mouseReport.bytes)) {
             Log.e(TAG, "Report wasn't sent")
@@ -56,23 +59,27 @@ open class RelativeMouseSender(
     }
 
     fun sendLeftClickOn() {
-        mouseReport.reset()
-        mouseReport.leftButton = true
-        sendMouse()
+        if(!leftClick) {
+            mouseReport.reset()
+            mouseReport.leftButton = true
+            sendMouse()
+            leftClick=true
+        }
     }
     fun sendLeftClickOff() {
-        mouseReport.reset()
-        mouseReport.leftButton = false
-        sendMouse()
+        if(leftClick) {
+            mouseReport.reset()
+            mouseReport.leftButton = false
+            sendMouse()
+            leftClick=false
+        }
 
     }
     fun sendRightClick() {
         mouseReport.reset()
-        mouseReport.rightButton = true
-        sendMouse()
+        sendRightClickOn()
         Thread.sleep(50)
-        mouseReport.rightButton= false
-        sendMouse()
+        sendRightClickOff()
     }
 
     fun sendRelXY(dx: Int, dy: Int){
@@ -106,15 +113,21 @@ open class RelativeMouseSender(
     }
 
     fun sendRightClickOff() {
-        mouseReport.reset()
-        mouseReport.rightButton = false
-        sendMouse()
+        if(rightClick) {
+            mouseReport.reset()
+            mouseReport.rightButton = false
+            sendMouse()
+            rightClick=false
+        }
     }
 
     fun sendRightClickOn() {
-        mouseReport.reset()
-        mouseReport.rightButton = true
-        sendMouse()
+        if(!rightClick) {
+            mouseReport.reset()
+            mouseReport.rightButton = true
+            sendMouse()
+            rightClick=true
+        }
     }
 
     companion object {

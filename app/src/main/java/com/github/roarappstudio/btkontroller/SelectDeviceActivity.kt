@@ -3,7 +3,9 @@ package com.github.roarappstudio.btkontroller
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.bluetooth.BluetoothAdapter
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorManager
@@ -36,6 +38,7 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
     private var bluetoothStatus: MenuItem? = null
 
     private lateinit var linearLayout: _LinearLayout
+
     private var sender: SensorSender? = null
 
     //private var  viewTouchListener : ViewListener? = null
@@ -54,7 +57,8 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
      */
     private var display_keyboard: Boolean = true
 
-    private var sensor : Sensor? = null
+        private var sensor : Sensor? = null
+
 
     public fun onPermissionsGranted(){
         val trackPadView = find<View>(R.id.mouseView)
@@ -90,6 +94,9 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
                     bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_connected)
                     bluetoothStatus?.tooltipText = "App Connected via bluetooth"
 
+                    if(sender!=null){ // Unregister listener when returning from standby
+                        sensorManager.unregisterListener(sender)
+                    }
                     sender = SensorSender(hidd, device, rMouseSenderLocal)
 
                     left_button.setOnTouchListener { view: View, motionEvent: MotionEvent ->
@@ -110,7 +117,9 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
                     }
 
                     middle_button.setOnTouchListener{view: View?, motionEvent: MotionEvent? ->
+
                         if (motionEvent?.action == MotionEvent.ACTION_DOWN) {
+
                             sender?.scrollModeOn()
                         } else if (motionEvent?.action == MotionEvent.ACTION_UP) {
                             sender?.scrollModeOff()
@@ -173,6 +182,7 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
         super.onPause()
 
     }
+
 
     public override fun onStop() {
         super.onStop()
