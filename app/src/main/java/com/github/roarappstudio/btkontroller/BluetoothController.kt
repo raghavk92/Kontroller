@@ -1,17 +1,21 @@
 package com.github.roarappstudio.btkontroller
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.bluetooth.*
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.util.Log
 import com.github.roarappstudio.btkontroller.reports.FeatureReport
 
-
+@SuppressLint("StaticFieldLeak")
 @Suppress("MemberVisibilityCanBePrivate")
 object BluetoothController : BluetoothHidDevice.Callback(), BluetoothProfile.ServiceListener {
 
     val featureReport = FeatureReport()
+
+
 
 
     override fun onSetReport(device: BluetoothDevice?, type: Byte, id: Byte, data: ByteArray?) {
@@ -46,7 +50,6 @@ object BluetoothController : BluetoothHidDevice.Callback(), BluetoothProfile.Ser
 
     var mpluggedDevice: BluetoothDevice? = null
 
-
     private var deviceListener: ((BluetoothHidDevice, BluetoothDevice) -> Unit)? = null
     private var disconnectListener: (() -> Unit)? = null
 
@@ -54,8 +57,10 @@ object BluetoothController : BluetoothHidDevice.Callback(), BluetoothProfile.Ser
         if (btHid != null)
             return
         btAdapter.getProfileProxy(ctx, this, BluetoothProfile.HID_DEVICE)
-
+        this.ctx=ctx
     }
+
+    var ctx: Context? = null
 
     fun getSender(callback: (BluetoothHidDevice, BluetoothDevice) -> Unit) {
         btHid?.let { hidd ->
@@ -82,6 +87,7 @@ object BluetoothController : BluetoothHidDevice.Callback(), BluetoothProfile.Ser
             btHid = null
     }
 
+
     override fun onServiceConnected(profile: Int, proxy: BluetoothProfile) {
         Log.i(TAG, "Connected to service")
         if (profile != BluetoothProfile.HID_DEVICE) {
@@ -96,10 +102,14 @@ object BluetoothController : BluetoothHidDevice.Callback(), BluetoothProfile.Ser
         }
         this.btHid = btHid
 
+
+
         btHid.registerApp(sdpRecord, null, qosOut, { it.run() }, this)//--
 
 
-        //btAdapter.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE, 300000)
+        if (mpluggedDevice != null && !btAdapter.isDiscovering) {
+            ctx?.startActivity(Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE))
+        }
     }
 
 
@@ -149,9 +159,7 @@ object BluetoothController : BluetoothHidDevice.Callback(), BluetoothProfile.Ser
                 )
             )
             Log.d("paired d", "paired devices are : $pairedDevices")
-            if(pairedDevices?.size ==0){
-                return
-            }
+
             Log.d("paired d", "${btHid?.getConnectionState(pairedDevices?.get(0))}")
             mpluggedDevice = pluggedDevice
             if (btHid?.getConnectionState(pluggedDevice) == 0 && pluggedDevice != null && autoPairFlag == true) {

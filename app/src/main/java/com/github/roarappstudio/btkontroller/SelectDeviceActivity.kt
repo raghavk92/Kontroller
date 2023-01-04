@@ -56,7 +56,7 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
      */
     private var display_keyboard: Boolean = true
 
-    private var sensor : Sensor? = null
+        private var sensor : Sensor? = null
 
 
     @SuppressLint("ResourceType")
