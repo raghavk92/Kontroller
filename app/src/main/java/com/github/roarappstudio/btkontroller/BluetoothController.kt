@@ -1,13 +1,13 @@
 package com.github.roarappstudio.btkontroller
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.*
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.util.Log
+import android.widget.Toast
 import com.github.roarappstudio.btkontroller.reports.FeatureReport
+
 
 @SuppressLint("StaticFieldLeak")
 @Suppress("MemberVisibilityCanBePrivate")
@@ -146,10 +146,14 @@ object BluetoothController : BluetoothHidDevice.Callback(), BluetoothProfile.Ser
 
         }
     }
+    fun getConnectedDeviceName(): String?{
+        return btHid?.getDevicesMatchingConnectionStates(intArrayOf( BluetoothProfile.STATE_CONNECTED))?.first()?.name
+    }
 
     override fun onAppStatusChanged(pluggedDevice: BluetoothDevice?, registered: Boolean) {
         super.onAppStatusChanged(pluggedDevice, registered)
         if (registered) {
+
             var pairedDevices = btHid?.getDevicesMatchingConnectionStates(
                 intArrayOf(
                     BluetoothProfile.STATE_CONNECTING,
@@ -159,7 +163,7 @@ object BluetoothController : BluetoothHidDevice.Callback(), BluetoothProfile.Ser
                 )
             )
             Log.d("paired d", "paired devices are : $pairedDevices")
-
+            println(pairedDevices?.size)
             Log.d("paired d", "${btHid?.getConnectionState(pairedDevices?.get(0))}")
             mpluggedDevice = pluggedDevice
             if (btHid?.getConnectionState(pluggedDevice) == 0 && pluggedDevice != null && autoPairFlag == true) {

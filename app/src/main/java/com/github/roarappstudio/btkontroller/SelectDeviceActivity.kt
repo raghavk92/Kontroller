@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -172,6 +173,8 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
                     bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_connected)
                     bluetoothStatus?.tooltipText = "App Connected via bluetooth"
 
+                    Toast.makeText(getContext(),"App connected to "+BluetoothController.getConnectedDeviceName(),Toast.LENGTH_SHORT).show();
+
                     if(sender!=null){ // Unregister listener when returning from standby
                         sensorManager.unregisterListener(sender)
                     }
@@ -225,6 +228,8 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
                 override fun run() {
                     bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_not_connected)
                     bluetoothStatus?.tooltipText = "App not connected via bluetooth"
+
+                    Toast.makeText(getContext(),"Connection lost",Toast.LENGTH_SHORT).show();
                 }
             })
         }
@@ -333,7 +338,6 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
             true
         }
         R.id.action_disconnect -> {
-
             BluetoothController.btHid?.disconnect(BluetoothController.hostDevice)
 
             bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_not_connected)
