@@ -32,12 +32,10 @@ class SensorSender(val hidDevice: BluetoothHidDevice, val host: BluetoothDevice,
                 val dx: Double = -(event.values[2].toDouble() * accuracy)
                 val dy: Double = -(event.values[0].toDouble() * accuracy)
                 rMouseSender.sendRelXY(dx.roundToInt(), dy.roundToInt())
-                rMouseSender.mouseReport.reset()
             }else{
                 val dx: Double = (event.values[2].toDouble() * scrollAccuracy)
                 val dy: Double = -(event.values[0].toDouble() * scrollAccuracy)
                 rMouseSender.sendScroll(dy.roundToInt(),dx.roundToInt())
-                rMouseSender.mouseReport.reset()
             }
         }
 
