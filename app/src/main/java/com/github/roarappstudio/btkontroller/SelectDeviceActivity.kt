@@ -3,7 +3,9 @@ package com.github.roarappstudio.btkontroller
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.bluetooth.BluetoothAdapter
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorManager
@@ -23,7 +25,6 @@ import com.github.roarappstudio.btkontroller.senders.SensorSender
 import kotlinx.android.synthetic.main.kontroller_main_activity.*
 
 import org.jetbrains.anko.*
-import org.lsposed.hiddenapibypass.HiddenApiBypass
 import java.util.*
 import kotlin.concurrent.timerTask
 
@@ -36,6 +37,7 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
     private var bluetoothStatus: MenuItem? = null
 
     private lateinit var linearLayout: _LinearLayout
+
     private var sender: SensorSender? = null
 
     //private var  viewTouchListener : ViewListener? = null
@@ -56,93 +58,6 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
 
     private var sensor : Sensor? = null
 
-    public fun onPermissionsGranted(){
-        val trackPadView = find<View>(R.id.mouseView)
-
-        BluetoothController.init(this)
-
-
-        BluetoothController.getSender { hidd, device ->
-            Log.wtf("weiufhas", "Callback called")
-            val mainHandler = Handler(getContext().mainLooper)
-
-            mainHandler.post(object : Runnable {
-                override fun run() {
-                    rKeyboardSender = KeyboardSender(hidd, device)
-                    var rMouseSenderLocal = RelativeMouseSender(hidd, device)
-                    rMouseSender=rMouseSenderLocal
-
-                    Log.i("TAGdddUI", Thread.currentThread().getName());
-                    val mDetector =
-                        CustomGestureDetector(getContext(), GestureDetectListener(rMouseSenderLocal))
-                    val gTouchListener = object : View.OnTouchListener {
-
-                        override fun onTouch(v: View?, event: MotionEvent?): Boolean {
-                            return mDetector.onTouchEvent(event)
-                        }
-                    }
-                    val composite = CompositeListener()
-
-                    composite.registerListener(gTouchListener)
-
-                    trackPadView.setOnTouchListener(composite)
-
-                    bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_connected)
-                    bluetoothStatus?.tooltipText = "App Connected via bluetooth"
-
-                    sender = SensorSender(hidd, device, rMouseSenderLocal)
-
-                    left_button.setOnTouchListener { view: View, motionEvent: MotionEvent ->
-                        if (motionEvent.action == MotionEvent.ACTION_DOWN) {
-                            rMouseSenderLocal.sendLeftClickOn();
-                        } else if (motionEvent.action == MotionEvent.ACTION_UP) {
-                            rMouseSenderLocal.sendLeftClickOff()
-                        }
-                        true
-                    }
-                    right_button.setOnTouchListener {view: View?, motionEvent: MotionEvent? ->
-                        if (motionEvent?.action == MotionEvent.ACTION_DOWN) {
-                            rMouseSenderLocal.sendRightClickOn();
-                        } else if (motionEvent?.action == MotionEvent.ACTION_UP) {
-                            rMouseSenderLocal.sendRightClickOff()
-                        }
-                        true
-                    }
-
-                    middle_button.setOnTouchListener{view: View?, motionEvent: MotionEvent? ->
-                        if (motionEvent?.action == MotionEvent.ACTION_DOWN) {
-                            sender?.scrollModeOn()
-                        } else if (motionEvent?.action == MotionEvent.ACTION_UP) {
-                            sender?.scrollModeOff()
-                        }
-                        true
-                    }
-
-                    sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
-                    if(trackpad_mode_enabled == false) {
-                        sensorManager.registerListener(
-                            sender,
-                            sensor,
-                            SensorManager.SENSOR_DELAY_GAME
-                        )
-                    }
-                }
-            })
-            Log.i("TAGddd", Thread.currentThread().getName());
-        }
-
-        BluetoothController.getDisconnector {
-            val mainHandler = Handler(getContext().mainLooper)
-
-            mainHandler.post(object : Runnable {
-                override fun run() {
-                    bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_not_connected)
-                    bluetoothStatus?.tooltipText = "App not connected via bluetooth"
-                }
-            })
-        }
-
-    }
 
     @SuppressLint("ResourceType")
     public override fun onCreate(savedInstanceState: Bundle?) {
@@ -152,27 +67,13 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
     fun getContext(): Context {
         return this
     }
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String?>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        // Loading shared preferences
-        for (j in grantResults){
-            if (j!=PackageManager.PERMISSION_GRANTED){
-                break
-            }
-        }
-        if(grantResults.size>1) {
-            onPermissionsGranted()
-        }
-    }
+
 
     public override fun onPause() {
         super.onPause()
 
     }
+
 
     public override fun onStop() {
         super.onStop()
@@ -211,35 +112,11 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
         },150)
         return super.onCreateOptionsMenu(menu)
     }
-    public fun checkPermissions(){
-        if(checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN)!= PackageManager.PERMISSION_GRANTED
-            || checkSelfPermission(Manifest.permission.BLUETOOTH_ADVERTISE)!= PackageManager.PERMISSION_GRANTED
-            || checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)!= PackageManager.PERMISSION_GRANTED
-            || checkSelfPermission(Manifest.permission.BLUETOOTH_ADMIN)!= PackageManager.PERMISSION_GRANTED
-        )
-             requestPermissions(
-                arrayOf(
-                    Manifest.permission.BLUETOOTH_CONNECT,
-                    Manifest.permission.BLUETOOTH_ADVERTISE,
-                    Manifest.permission.BLUETOOTH_SCAN,
-                    Manifest.permission.BLUETOOTH_ADMIN
-                ),
-                100
-             )
-        else{
-            onPermissionsGranted();
-        }
-    }
-
 
 
     public override fun onStart() {
 
         super.onStart()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            HiddenApiBypass.addHiddenApiExemptions("L");
-        }
 
 
         bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_not_connected)
@@ -262,7 +139,96 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
         )
         else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        checkPermissions()
+        val trackPadView = find<View>(R.id.mouseView)
+
+        BluetoothController.init(this)
+
+
+        BluetoothController.getSender { hidd, device ->
+            Log.wtf("weiufhas", "Callback called")
+            val mainHandler = Handler(getContext().mainLooper)
+
+            mainHandler.post(object : Runnable {
+                override fun run() {
+                    rKeyboardSender = KeyboardSender(hidd, device)
+                    var rMouseSenderLocal = RelativeMouseSender(hidd, device)
+                    rMouseSender=rMouseSenderLocal
+
+                    Log.i("TAGdddUI", Thread.currentThread().getName());
+                    val mDetector =
+                        CustomGestureDetector(getContext(), GestureDetectListener(rMouseSenderLocal))
+                    val gTouchListener = object : View.OnTouchListener {
+
+                        override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+                            return mDetector.onTouchEvent(event)
+                        }
+                    }
+                    val composite = CompositeListener()
+
+                    composite.registerListener(gTouchListener)
+
+                    trackPadView.setOnTouchListener(composite)
+
+                    bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_connected)
+                    bluetoothStatus?.tooltipText = "App Connected via bluetooth"
+
+                    if(sender!=null){ // Unregister listener when returning from standby
+                        sensorManager.unregisterListener(sender)
+                    }
+                    sender = SensorSender(hidd, device, rMouseSenderLocal)
+
+                    left_button.setOnTouchListener { view: View, motionEvent: MotionEvent ->
+                        if (motionEvent.action == MotionEvent.ACTION_DOWN) {
+                            rMouseSenderLocal.sendLeftClickOn();
+                        } else if (motionEvent.action == MotionEvent.ACTION_UP) {
+                            rMouseSenderLocal.sendLeftClickOff()
+                        }
+                        true
+                    }
+                    right_button.setOnTouchListener {view: View?, motionEvent: MotionEvent? ->
+                        if (motionEvent?.action == MotionEvent.ACTION_DOWN) {
+                            rMouseSenderLocal.sendRightClickOn();
+                        } else if (motionEvent?.action == MotionEvent.ACTION_UP) {
+                            rMouseSenderLocal.sendRightClickOff()
+                        }
+                        true
+                    }
+
+                    middle_button.setOnTouchListener{view: View?, motionEvent: MotionEvent? ->
+
+                        if (motionEvent?.action == MotionEvent.ACTION_DOWN) {
+
+                            sender?.scrollModeOn()
+                        } else if (motionEvent?.action == MotionEvent.ACTION_UP) {
+                            sender?.scrollModeOff()
+                        }
+                        true
+                    }
+
+                    sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+                    if(trackpad_mode_enabled == false) {
+                        sensorManager.registerListener(
+                            sender,
+                            sensor,
+                            SensorManager.SENSOR_DELAY_GAME
+                        )
+                    }
+                }
+            })
+            Log.i("TAGddd", Thread.currentThread().getName());
+        }
+
+        BluetoothController.getDisconnector {
+            val mainHandler = Handler(getContext().mainLooper)
+
+            mainHandler.post(object : Runnable {
+                override fun run() {
+                    bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_not_connected)
+                    bluetoothStatus?.tooltipText = "App not connected via bluetooth"
+                }
+            })
+        }
+
 
 
     }
@@ -298,9 +264,9 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 println("action")
                 if (action == KeyEvent.ACTION_DOWN) {
-                        rMouseSender?.sendLeftClickOn()
+                    rMouseSender?.sendLeftClickOn()
                 }else if(action== KeyEvent.ACTION_UP){
-                        rMouseSender?.sendLeftClickOff()
+                    rMouseSender?.sendLeftClickOff()
                 }
                 true
             }
@@ -409,10 +375,10 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
                 item.isChecked = true
                 BluetoothController.autoPairFlag = true
 
-                    if (BluetoothController.btHid?.getConnectionState(BluetoothController.mpluggedDevice) == 0 && BluetoothController.mpluggedDevice != null && BluetoothController.autoPairFlag == true) {
-                        BluetoothController.btHid?.connect(BluetoothController.mpluggedDevice)
-                        //hostDevice.toString()
-                    }
+                if (BluetoothController.btHid?.getConnectionState(BluetoothController.mpluggedDevice) == 0 && BluetoothController.mpluggedDevice != null && BluetoothController.autoPairFlag == true) {
+                    BluetoothController.btHid?.connect(BluetoothController.mpluggedDevice)
+                    //hostDevice.toString()
+                }
 
                 with(sharedPref.edit()) {
                     putBoolean(getString(R.string.auto_pair_flag), BluetoothController.autoPairFlag)
