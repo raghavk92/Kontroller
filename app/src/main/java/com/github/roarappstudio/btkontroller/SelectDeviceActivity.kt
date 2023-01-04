@@ -60,7 +60,90 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
         private var sensor : Sensor? = null
 
 
-    public fun onPermissionsGranted(){
+    @SuppressLint("ResourceType")
+    public override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.kontroller_main_activity)
+    }
+    fun getContext(): Context {
+        return this
+    }
+
+
+    public override fun onPause() {
+        super.onPause()
+
+    }
+
+
+    public override fun onStop() {
+        super.onStop()
+        BluetoothController.btHid?.unregisterApp()
+
+        BluetoothController.hostDevice = null
+        BluetoothController.btHid = null
+    }
+
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.select_device_activity_menu, menu)
+
+        bluetoothStatus = menu?.findItem(R.id.ble_app_connection_status)
+        autoPairMenuItem = menu?.findItem(R.id.action_autopair)
+        var trackpadModeEnabledMenuItem = menu?.findItem(R.id.change_trackpad_mode)
+        if(trackpad_mode_enabled==true){
+            trackpadModeEnabledMenuItem?.title = "(T)"
+            middle_button.visibility=View.GONE
+        }
+
+        screenOnMenuItem = menu?.findItem(R.id.action_screen_on)
+        val sharedPref = this.getPreferences(Context.MODE_PRIVATE)
+        screenOnMenuItem?.isChecked =
+            sharedPref.getBoolean(getString(R.string.screen_on_flag), false);
+        autoPairMenuItem?.isChecked =
+            sharedPref.getBoolean(getString(R.string.auto_pair_flag), false)
+
+        var timer = Timer()
+
+        timer.schedule(timerTask { //TODO I've no clue where to put this without a timer, if the keyboard should be enabled on startup.
+            if(display_keyboard==true) {
+                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0)
+            }
+        },150)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+
+    public override fun onStart() {
+
+        super.onStart()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            HiddenApiBypass.addHiddenApiExemptions("L");
+        }
+
+
+        bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_not_connected)
+        bluetoothStatus?.tooltipText = "App not connected via bluetooth"
+
+        val sharedPref =  getPreferences(MODE_PRIVATE)
+        trackpad_mode_enabled = sharedPref.getBoolean(getString(R.string.track_pad_mode_flag),true)
+        display_keyboard = sharedPref.getBoolean(getString(R.string.keyboard_enabled),true)
+
+        BluetoothController.autoPairFlag =
+            sharedPref.getBoolean(getString(R.string.auto_pair_flag), true)
+        autoPairMenuItem?.isChecked =
+            sharedPref.getBoolean(getString(R.string.auto_pair_flag), false)
+
+        screenOnMenuItem?.isChecked =
+            sharedPref.getBoolean(getString(R.string.screen_on_flag), false)
+
+        if (sharedPref.getBoolean(getString(R.string.screen_on_flag), false)) window.addFlags(
+            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+        )
+        else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
         val trackPadView = find<View>(R.id.mouseView)
 
         BluetoothController.init(this)
@@ -151,128 +234,6 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
             })
         }
 
-    }
-
-    @SuppressLint("ResourceType")
-    public override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.kontroller_main_activity)
-    }
-    fun getContext(): Context {
-        return this
-    }
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String?>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        // Loading shared preferences
-        for (j in grantResults){
-            if (j!=PackageManager.PERMISSION_GRANTED){
-                break
-            }
-        }
-        if(grantResults.size>1) {
-            onPermissionsGranted()
-        }
-    }
-
-    public override fun onPause() {
-        super.onPause()
-
-    }
-
-
-    public override fun onStop() {
-        super.onStop()
-        BluetoothController.btHid?.unregisterApp()
-
-        BluetoothController.hostDevice = null
-        BluetoothController.btHid = null
-    }
-
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.select_device_activity_menu, menu)
-
-        bluetoothStatus = menu?.findItem(R.id.ble_app_connection_status)
-        autoPairMenuItem = menu?.findItem(R.id.action_autopair)
-        var trackpadModeEnabledMenuItem = menu?.findItem(R.id.change_trackpad_mode)
-        if(trackpad_mode_enabled==true){
-            trackpadModeEnabledMenuItem?.title = "(T)"
-            middle_button.visibility=View.GONE
-        }
-
-        screenOnMenuItem = menu?.findItem(R.id.action_screen_on)
-        val sharedPref = this.getPreferences(Context.MODE_PRIVATE)
-        screenOnMenuItem?.isChecked =
-            sharedPref.getBoolean(getString(R.string.screen_on_flag), false);
-        autoPairMenuItem?.isChecked =
-            sharedPref.getBoolean(getString(R.string.auto_pair_flag), false)
-
-        var timer = Timer()
-
-        timer.schedule(timerTask { //TODO I've no clue where to put this without a timer, if the keyboard should be enabled on startup.
-            if(display_keyboard==true) {
-                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0)
-            }
-        },150)
-        return super.onCreateOptionsMenu(menu)
-    }
-    public fun checkPermissions(){
-        if(checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN)!= PackageManager.PERMISSION_GRANTED
-            || checkSelfPermission(Manifest.permission.BLUETOOTH_ADVERTISE)!= PackageManager.PERMISSION_GRANTED
-            || checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)!= PackageManager.PERMISSION_GRANTED
-            || checkSelfPermission(Manifest.permission.BLUETOOTH_ADMIN)!= PackageManager.PERMISSION_GRANTED
-        )
-             requestPermissions(
-                arrayOf(
-                    Manifest.permission.BLUETOOTH_CONNECT,
-                    Manifest.permission.BLUETOOTH_ADVERTISE,
-                    Manifest.permission.BLUETOOTH_SCAN,
-                    Manifest.permission.BLUETOOTH_ADMIN
-                ),
-                100
-             )
-        else{
-            onPermissionsGranted();
-        }
-    }
-
-
-
-    public override fun onStart() {
-
-        super.onStart()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            HiddenApiBypass.addHiddenApiExemptions("L");
-        }
-
-
-        bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_not_connected)
-        bluetoothStatus?.tooltipText = "App not connected via bluetooth"
-
-        val sharedPref =  getPreferences(MODE_PRIVATE)
-        trackpad_mode_enabled = sharedPref.getBoolean(getString(R.string.track_pad_mode_flag),true)
-        display_keyboard = sharedPref.getBoolean(getString(R.string.keyboard_enabled),true)
-
-        BluetoothController.autoPairFlag =
-            sharedPref.getBoolean(getString(R.string.auto_pair_flag), true)
-        autoPairMenuItem?.isChecked =
-            sharedPref.getBoolean(getString(R.string.auto_pair_flag), false)
-
-        screenOnMenuItem?.isChecked =
-            sharedPref.getBoolean(getString(R.string.screen_on_flag), false)
-
-        if (sharedPref.getBoolean(getString(R.string.screen_on_flag), false)) window.addFlags(
-            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
-        )
-        else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-        checkPermissions()
 
 
     }
