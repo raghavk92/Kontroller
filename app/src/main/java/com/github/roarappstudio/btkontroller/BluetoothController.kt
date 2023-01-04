@@ -146,9 +146,7 @@ object BluetoothController : BluetoothHidDevice.Callback(), BluetoothProfile.Ser
 
         }
     }
-    fun getConnectedDeviceName(): String?{
-        return btHid?.getDevicesMatchingConnectionStates(intArrayOf( BluetoothProfile.STATE_CONNECTED))?.first()?.name
-    }
+
 
     override fun onAppStatusChanged(pluggedDevice: BluetoothDevice?, registered: Boolean) {
         super.onAppStatusChanged(pluggedDevice, registered)

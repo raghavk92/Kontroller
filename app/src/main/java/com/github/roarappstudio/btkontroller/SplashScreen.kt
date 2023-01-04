@@ -9,6 +9,7 @@ import org.jetbrains.anko.startActivity
 class SplashScreen: Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         if((
                     checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN)!= PackageManager.PERMISSION_GRANTED

@@ -1,16 +1,12 @@
 package com.github.roarappstudio.btkontroller
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorManager
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -24,7 +20,6 @@ import com.github.roarappstudio.btkontroller.senders.KeyboardSender
 import com.github.roarappstudio.btkontroller.senders.RelativeMouseSender
 import com.github.roarappstudio.btkontroller.senders.SensorSender
 import kotlinx.android.synthetic.main.kontroller_main_activity.*
-
 import org.jetbrains.anko.*
 import java.util.*
 import kotlin.concurrent.timerTask
@@ -50,7 +45,7 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
     /**
      * If true Gyroscope control is disabled
      */
-    private var trackpad_mode_enabled: Boolean = false
+    private var gyroscopeDisabled: Boolean = false
 
     /**
      * If true Keyboard should be displayed
@@ -64,6 +59,7 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.kontroller_main_activity)
+        val li = LayoutInflater.from(getContext())
     }
     fun getContext(): Context {
         return this
@@ -91,9 +87,11 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
         bluetoothStatus = menu?.findItem(R.id.ble_app_connection_status)
         autoPairMenuItem = menu?.findItem(R.id.action_autopair)
         var trackpadModeEnabledMenuItem = menu?.findItem(R.id.change_trackpad_mode)
-        if(trackpad_mode_enabled==true){
-            trackpadModeEnabledMenuItem?.title = "(T)"
+        if(gyroscopeDisabled==true){
+            trackpadModeEnabledMenuItem?.setChecked(false)
             middle_button.visibility=View.GONE
+        }else{
+            trackpadModeEnabledMenuItem?.setChecked(true)
         }
 
         screenOnMenuItem = menu?.findItem(R.id.action_screen_on)
@@ -124,7 +122,7 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
         bluetoothStatus?.tooltipText = "App not connected via bluetooth"
 
         val sharedPref =  getPreferences(MODE_PRIVATE)
-        trackpad_mode_enabled = sharedPref.getBoolean(getString(R.string.track_pad_mode_flag),true)
+        gyroscopeDisabled = sharedPref.getBoolean(getString(R.string.track_pad_mode_flag),true)
         display_keyboard = sharedPref.getBoolean(getString(R.string.keyboard_enabled),true)
 
         BluetoothController.autoPairFlag =
@@ -173,7 +171,7 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
                     bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_connected)
                     bluetoothStatus?.tooltipText = "App Connected via bluetooth"
 
-                    Toast.makeText(getContext(),"App connected to "+BluetoothController.getConnectedDeviceName(),Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(),"App connected to "+BluetoothController.hostDevice?.name,Toast.LENGTH_SHORT).show();
 
                     if(sender!=null){ // Unregister listener when returning from standby
                         sensorManager.unregisterListener(sender)
@@ -202,14 +200,18 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
                         if (motionEvent?.action == MotionEvent.ACTION_DOWN) {
 
                             sender?.scrollModeOn()
+
                         } else if (motionEvent?.action == MotionEvent.ACTION_UP) {
                             sender?.scrollModeOff()
+
+                            sender?.rMouseSender?.mouseReport?.reset()
+                            sender?.rMouseSender?.sendScroll(0,0)
                         }
                         true
                     }
 
                     sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
-                    if(trackpad_mode_enabled == false) {
+                    if(gyroscopeDisabled == false) {
                         sensorManager.registerListener(
                             sender,
                             sensor,
@@ -299,28 +301,32 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
             editor.commit()
             true
         }
+        R.id.action_pairable->{
+            this.startActivity(Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE))
+            true
+        }
 
         R.id.change_trackpad_mode -> {
             val sharedPref =  getPreferences(MODE_PRIVATE)
             val editor = sharedPref.edit()
-            if (trackpad_mode_enabled) { // Enable Gyroscope
-                item.title = "(G)"
+            if (!item.isChecked) { // Enable Gyroscope
                 if(sensor!=null){
                     sensorManager.registerListener(sender, sensor, SensorManager.SENSOR_DELAY_GAME)
                 }
                 rKeyboardSender?.sendNullKeys()
                 middle_button.visibility=View.VISIBLE
-
+                item.setChecked(true)
             } else {
                 if(sensor!=null){ // Disable Gyroscope
                     sensorManager.unregisterListener(sender)
                 }
-                item.title = "(T)"
                 middle_button.visibility=View.GONE
+                item.setChecked(false)
+
             }
 
-            trackpad_mode_enabled=!trackpad_mode_enabled
-            editor.putBoolean(getString(R.string.track_pad_mode_flag), trackpad_mode_enabled)
+            gyroscopeDisabled=!gyroscopeDisabled
+            editor.putBoolean(getString(R.string.track_pad_mode_flag), gyroscopeDisabled)
             editor.commit()
             true
         }
@@ -340,7 +346,6 @@ class SelectDeviceActivity : Activity(), KeyEvent.Callback {
         R.id.action_disconnect -> {
             BluetoothController.btHid?.disconnect(BluetoothController.hostDevice)
 
-            bluetoothStatus?.icon = getDrawable(R.drawable.ic_action_app_not_connected)
             bluetoothStatus?.tooltipText = "App not connected via bluetooth"
             true
         }
