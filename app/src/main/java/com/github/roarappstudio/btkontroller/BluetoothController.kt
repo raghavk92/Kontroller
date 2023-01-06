@@ -107,9 +107,6 @@ object BluetoothController : BluetoothHidDevice.Callback(), BluetoothProfile.Ser
         btHid.registerApp(sdpRecord, null, qosOut, { it.run() }, this)//--
 
 
-        if (mpluggedDevice != null && !btAdapter.isDiscovering) {
-            ctx?.startActivity(Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE))
-        }
     }
 
 

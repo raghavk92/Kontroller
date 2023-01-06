@@ -15,7 +15,6 @@ class SplashScreen: Activity() {
                     checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN)!= PackageManager.PERMISSION_GRANTED
                             || checkSelfPermission(Manifest.permission.BLUETOOTH_ADVERTISE)!= PackageManager.PERMISSION_GRANTED
                             || checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)!= PackageManager.PERMISSION_GRANTED
-                            || checkSelfPermission(Manifest.permission.BLUETOOTH_ADMIN)!= PackageManager.PERMISSION_GRANTED
                     )
             &&
             android.os.Build.VERSION.SDK_INT > 30
@@ -24,8 +23,7 @@ class SplashScreen: Activity() {
                 arrayOf(
                     Manifest.permission.BLUETOOTH_CONNECT,
                     Manifest.permission.BLUETOOTH_ADVERTISE,
-                    Manifest.permission.BLUETOOTH_SCAN,
-                    Manifest.permission.BLUETOOTH_ADMIN
+                    Manifest.permission.BLUETOOTH_SCAN
                 ),
                 100
             )

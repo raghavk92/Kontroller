@@ -5,7 +5,7 @@
     <string name="action_check">(N)</string>
     <string name="action_tool_tip">Toggle to switch(Ctrl/Alt/Wn Keys) from click_each_time(Normal) state to key_pressed(Hold) state</string>
     <string name="action_disconnect">Disconnect</string>
-    <string name="action_pairable">Make device visible</string>
+    <string name="action_pairable">Make Device Visible</string>
     <string name="action_autopair">Enable AutoPair</string>
     <string name="auto_pair_flag">autopairfl</string>
     <string name="title_screen_on">Screen Always On</string>
@@ -16,4 +16,5 @@
     <string name="change_trackpad_mode">Change trackpad mode</string>
     <string name="track_pad_mode_flag">trackpadModeEnabled</string>
     <string name="keyboard_enabled">keyboardEnabled</string>
+    <string name="enable_gyro">Enable Gyroscope Control</string>
 </resources>
