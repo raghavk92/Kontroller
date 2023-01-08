@@ -2,6 +2,12 @@
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     <!-- "Mark Favorite", should appear as action button if possible -->
+       <item
+            android:id="@+id/check_modifier_state"
+            android:title="@string/action_check"
+            android:tooltipText="@string/action_tool_tip"
+            android:showAsAction="always"
+    />
     <item
             android:id="@+id/ble_app_connection_status"
             android:title="@string/action_ble_status_tool_tip"
@@ -9,12 +15,7 @@
             android:tooltipText="@string/action_ble_status_tool_tip"
             android:showAsAction="always"
             />
-    <item
-            android:id="@+id/check_modifier_state"
-            android:title="@string/action_check"
-            android:tooltipText="@string/action_tool_tip"
-            android:showAsAction="always"
-    />
+ 
 
 
     <item
