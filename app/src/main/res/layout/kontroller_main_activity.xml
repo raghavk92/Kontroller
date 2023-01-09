@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/rootLinearLayout"
+        >
+
+    <TextView
+            android:layout_width="match_parent"
+            android:id="@+id/mouseView"
+            android:text="Trackpad"
+            android:background="@drawable/view_border"
+            android:gravity="center"
+            android:layout_height="wrap_content"
+            android:layout_weight = "1"
+            >
+    </TextView>
+
+    <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="100dp">
+        <Button
+                android:text="Left"
+                android:textAllCaps="false"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:id="@+id/left_button"
+                android:layout_weight="1"
+                android:focusable="false"/>
+
+        <Button
+                android:text="Scroll"
+                android:layout_width="wrap_content"
+                android:textAllCaps="false"
+                android:layout_height="fill_parent"
+                android:id="@+id/middle_button"
+                android:layout_weight="1"
+                android:focusable="false"/>
+
+        <Button
+                android:text="Right"
+                android:textAllCaps="false"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:id="@+id/right_button"
+                android:layout_weight="1"
+                android:focusable="false"
+                />
+    </LinearLayout>
+
+</LinearLayout>

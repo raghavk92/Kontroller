@@ -9,15 +9,26 @@ import org.jetbrains.anko.startActivity
 class SplashScreen: Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
-        if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if((
+                    checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN)!= PackageManager.PERMISSION_GRANTED
+                            || checkSelfPermission(Manifest.permission.BLUETOOTH_ADVERTISE)!= PackageManager.PERMISSION_GRANTED
+                            || checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)!= PackageManager.PERMISSION_GRANTED
+                    )
+            &&
+            android.os.Build.VERSION.SDK_INT > 30
+        )
             requestPermissions(
-                arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), 0
+                arrayOf(
+                    Manifest.permission.BLUETOOTH_CONNECT,
+                    Manifest.permission.BLUETOOTH_ADVERTISE,
+                    Manifest.permission.BLUETOOTH_SCAN
+                ),
+                100
             )
-        } else {
-
+        else{
             startActivity<SelectDeviceActivity>()
-
             finish()
         }
     }
@@ -25,9 +36,14 @@ class SplashScreen: Activity() {
 
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+        if (grantResults.isNotEmpty()){
+            for (res in grantResults){
+                if (res!=PackageManager.PERMISSION_GRANTED){
+                    return
+                }
+            }
             startActivity<SelectDeviceActivity>()
-        finish()
+            finish()
+        }
     }
-
 }

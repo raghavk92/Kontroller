@@ -28,8 +28,6 @@ inline class FeatureReport (
         }
 
 
-
-
     fun reset() = bytes.fill(0)
 
     companion object {

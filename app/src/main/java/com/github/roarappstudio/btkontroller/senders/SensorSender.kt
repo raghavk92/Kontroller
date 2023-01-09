@@ -7,15 +7,15 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.util.Log
-import com.github.roarappstudio.btkontroller.reports.AbsMouseReport
-import kotlin.math.PI
+import com.github.roarappstudio.btkontroller.senders.RelativeMouseSender.Companion.TAG
+import java.nio.ByteBuffer
 import kotlin.math.roundToInt
 
 @ExperimentalUnsignedTypes
-class SensorSender(hidDevice: BluetoothHidDevice, host: BluetoothDevice): Sender(hidDevice, host), SensorEventListener {
-
-    val absMouseReport = AbsMouseReport()
-
+class SensorSender(val hidDevice: BluetoothHidDevice, val host: BluetoothDevice,val rMouseSender: RelativeMouseSender): SensorEventListener {
+    var accuracy = 30f
+    var scrollAccuracy = 5f
+    var scrollMode=false
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
         Log.d(TAG, "Accuracy changed ${when(accuracy) {
@@ -27,23 +27,27 @@ class SensorSender(hidDevice: BluetoothHidDevice, host: BluetoothDevice): Sender
     }
 
     override fun onSensorChanged(event: SensorEvent) {
-        val angleX = event.values[2].toDouble()
-        val angleY = event.values[0].toDouble()
-        val pixelsX = (angleX * 3840 / PI).roundToInt() + 1920
-        val pixelsY = (angleY * 2160 / PI).roundToInt() + 1080
-        Log.wtf("WTF", "$pixelsX x $pixelsY")
-        if (pixelsX != absMouseReport.X || pixelsY != absMouseReport.Y) {
-            absMouseReport.X = pixelsX
-            absMouseReport.Y = pixelsY
-            hidDevice.sendReport(this.host, 2, absMouseReport.bytes)
-
-        } else {
-            Log.i("WTF", "No changes")
+        if(event.sensor.type == Sensor.TYPE_GYROSCOPE){
+            if(!scrollMode) {
+                val dx: Double = -(event.values[2].toDouble() * accuracy)
+                val dy: Double = -(event.values[0].toDouble() * accuracy)
+                rMouseSender.sendRelXY(dx.roundToInt(), dy.roundToInt())
+            }else{
+                val dx: Double = (event.values[2].toDouble() * scrollAccuracy)
+                val dy: Double = -(event.values[0].toDouble() * scrollAccuracy)
+                rMouseSender.sendScroll(dy.roundToInt(),dx.roundToInt())
+            }
         }
-    }
-
-    override fun sendMouse() {
 
     }
+
+    fun scrollModeOn() {
+        scrollMode=true
+    }
+
+    fun scrollModeOff() {
+        scrollMode=false
+    }
+
 
 }

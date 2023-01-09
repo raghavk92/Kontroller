@@ -7,5 +7,9 @@
     <item name="textview" type="id"/>
     <item name="action_screen_on" type="id"/>
     <item name="ble_app_connection_status" type="id"/>
+    <item name="left_button" type="id"/>
+    <item name="middle_button" type="id"/>
+    <item name="right_button" type="id"/>
+    <item name="rootLinearLayout" type="id"/>
 
 </resources>
