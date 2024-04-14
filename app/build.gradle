@@ -1,19 +1,19 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 28
+    namespace "com.github.roarappstudio.btkontroller"
+    compileSdkVersion 34
     defaultConfig {
         applicationId "com.github.roarappstudio.btkontroller"
         minSdkVersion 28
-        targetSdkVersion 28
+        targetSdkVersion 34
         versionCode 2
         versionName "0.0.2"
     }
     compileOptions {
-        targetCompatibility 1.8
-        sourceCompatibility 1.8
+        targetCompatibility 17
+        sourceCompatibility 17
     }
     buildTypes {
         release {

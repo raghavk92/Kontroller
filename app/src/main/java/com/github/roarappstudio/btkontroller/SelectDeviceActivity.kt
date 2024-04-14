@@ -166,7 +166,7 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
 
                     val gTouchListener = object : View.OnTouchListener {
 
-                        override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+                        override fun onTouch(v: View?, event: MotionEvent): Boolean {
 
                             return mDetector.onTouchEvent(event)
 
@@ -417,10 +417,10 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
 
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-                with(sharedPref.edit())
+                with(sharedPref?.edit())
                 {
-                    putBoolean(getString(R.string.screen_on_flag), false)
-                    commit()
+                    this?.putBoolean(getString(R.string.screen_on_flag), false)
+                    this?.commit() ?: false
                 }
 
             }
@@ -429,10 +429,10 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
                 item.isChecked=true
                 window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-                with(sharedPref.edit())
+                with(sharedPref?.edit())
                 {
-                    putBoolean(getString(R.string.screen_on_flag), true)
-                    commit()
+                    this?.putBoolean(getString(R.string.screen_on_flag), true)
+                    this?.commit()
                 }
 
             }
@@ -446,10 +446,10 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
                 item.isChecked = false
                 BluetoothController.autoPairFlag=false
 
-                with(sharedPref.edit())
+                with(sharedPref?.edit())
                 {
-                    putBoolean(getString(R.string.auto_pair_flag), BluetoothController.autoPairFlag)
-                    commit()
+                    this?.putBoolean(getString(R.string.auto_pair_flag), BluetoothController.autoPairFlag)
+                    this?.commit()
                 }
 
             }
@@ -462,10 +462,10 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
                     BluetoothController.btHid?.connect(BluetoothController.mpluggedDevice)
                     //hostDevice.toString()
                 }
-                with(sharedPref.edit())
+                with(sharedPref?.edit())
                 {
-                    putBoolean(getString(R.string.auto_pair_flag), BluetoothController.autoPairFlag)
-                    commit()
+                    this?.putBoolean(getString(R.string.auto_pair_flag), BluetoothController.autoPairFlag)
+                    this?.commit()
                 }
 
             }
