@@ -1,20 +1,46 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-parcelize'// 'kotlin-android-extensions'
+
+//plugins {
+//    id 'com.android.application'
+//    id 'kotlin-android'
+//    id 'kotlin-parcelize'
+//}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+//tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+//    kotlinOptions {
+//        jvmTarget = "11"
+//    }
+//}
 
 android {
-    compileSdkVersion 28
+    buildFeatures {
+        viewBinding = true
+    }
+    namespace 'com.github.roarappstudio.btkontroller'
+    compileSdkVersion 30
     defaultConfig {
         applicationId "com.github.roarappstudio.btkontroller"
         minSdkVersion 28
-        targetSdkVersion 28
+        //noinspection ExpiredTargetSdkVersion
+        targetSdkVersion 30
         versionCode 2
         versionName "0.0.2"
     }
+
     compileOptions {
-        targetCompatibility 1.8
-        sourceCompatibility 1.8
+        targetCompatibility 1.8//JavaVersion.VERSION_17 // 1.8// 1.8
+        sourceCompatibility 1.8//JavaVersion.VERSION_17 // 1.8//1.8
     }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
     buildTypes {
         release {
             minifyEnabled true
