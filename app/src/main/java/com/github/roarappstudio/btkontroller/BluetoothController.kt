@@ -1,22 +1,28 @@
 package com.github.roarappstudio.btkontroller
 
-import android.bluetooth.*
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothHidDevice
+import android.bluetooth.BluetoothHidDeviceAppQosSettings
+import android.bluetooth.BluetoothHidDeviceAppSdpSettings
+import android.bluetooth.BluetoothProfile
 import android.content.Context
+import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.util.Log
 import com.github.roarappstudio.btkontroller.reports.FeatureReport
 
 
 @Suppress("MemberVisibilityCanBePrivate")
-object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.ServiceListener {
+object BluetoothController : BluetoothHidDevice.Callback(), BluetoothProfile.ServiceListener {
 
     val featureReport = FeatureReport()
 
 
-
     override fun onSetReport(device: BluetoothDevice?, type: Byte, id: Byte, data: ByteArray?) {
-        Log.i("setfirst","setfirst")
+        Log.i("setfirst", "setfirst")
         super.onSetReport(device, type, id, data)
-        Log.i("setreport","this $device and $type and $id and $data")
+        Log.i("setreport", "this $device and $type and $id and $data")
 
     }
 
@@ -27,14 +33,14 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
         super.onGetReport(device, type, id, bufferSize)
 
         Log.i("get", "second")
-            if (type == BluetoothHidDevice.REPORT_TYPE_FEATURE) {
-                featureReport.wheelResolutionMultiplier = true
-                featureReport.acPanResolutionMultiplier = true
-                Log.i("getbthid","$btHid")
+        if (type == BluetoothHidDevice.REPORT_TYPE_FEATURE) {
+            featureReport.wheelResolutionMultiplier = true
+            featureReport.acPanResolutionMultiplier = true
+            Log.i("getbthid", "$btHid")
 
-                 var wasrs=btHid?.replyReport(device, type, FeatureReport.ID, featureReport.bytes)
-                Log.i("replysuccess flag ",wasrs.toString())
-            }
+            var wasrs = btHid?.replyReport(device, type, FeatureReport.ID, featureReport.bytes)
+            Log.i("replysuccess flag ", wasrs.toString())
+        }
 
 
     }
@@ -45,12 +51,11 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
     var hostDevice: BluetoothDevice? = null
     var autoPairFlag = false
 
-    var mpluggedDevice :BluetoothDevice? = null
+    var mpluggedDevice: BluetoothDevice? = null
 
 
-
-    private var deviceListener: ((BluetoothHidDevice, BluetoothDevice)->Unit)? = null
-    private var disconnectListener: (()->Unit)? = null
+    private var deviceListener: ((BluetoothHidDevice, BluetoothDevice) -> Unit)? = null
+    private var disconnectListener: (() -> Unit)? = null
 
     fun init(ctx: Context) {
         if (btHid != null)
@@ -58,7 +63,7 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
         btAdapter.getProfileProxy(ctx, this, BluetoothProfile.HID_DEVICE)
     }
 
-    fun getSender(callback: (BluetoothHidDevice, BluetoothDevice)->Unit) {
+    fun getSender(callback: (BluetoothHidDevice, BluetoothDevice) -> Unit) {
         btHid?.let { hidd ->
             hostDevice?.let { host ->
                 callback(hidd, host)
@@ -69,7 +74,7 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
     }
 
 
-    fun getDisconnector(callback: ()->Unit) {
+    fun getDisconnector(callback: () -> Unit) {
 
         disconnectListener = callback
     }
@@ -98,14 +103,16 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
             return
         }
         this.btHid = btHid
-        btHid.registerApp(sdpRecord, null, qosOut, {it.run()}, this)//--
-        btAdapter.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE, 300000)
+        btHid.registerApp(sdpRecord, null, qosOut, { it.run() }, this)
 
-
-
+        if (btAdapter.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
+            val intent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
+            intent.flags = FLAG_ACTIVITY_NEW_TASK
+            intent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300)
+            Kontroller.INSTANCE?.startActivity(intent)
+        }
 
     }
-
 
 
     /************************************************/
@@ -113,17 +120,20 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
     /************************************************/
 
 
-
     override fun onConnectionStateChanged(device: BluetoothDevice?, state: Int) {
         super.onConnectionStateChanged(device, state)
-        Log.i(TAG, "Connection state ${when(state) {
-            BluetoothProfile.STATE_CONNECTING -> "CONNECTING"
-            BluetoothProfile.STATE_CONNECTED -> "CONNECTED"
-            BluetoothProfile.STATE_DISCONNECTING -> "DISCONNECTING"
-            BluetoothProfile.STATE_DISCONNECTED -> "DISCONNECTED"
+        Log.i(
+            TAG, "Connection state ${
+                when (state) {
+                    BluetoothProfile.STATE_CONNECTING -> "CONNECTING"
+                    BluetoothProfile.STATE_CONNECTED -> "CONNECTED"
+                    BluetoothProfile.STATE_DISCONNECTING -> "DISCONNECTING"
+                    BluetoothProfile.STATE_DISCONNECTED -> "DISCONNECTED"
 
-            else -> state.toString()
-        }}")
+                    else -> state.toString()
+                }
+            }"
+        )
         if (state == BluetoothProfile.STATE_CONNECTED) {
             if (device != null) {
                 hostDevice = device
@@ -136,8 +146,7 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
             }
         } else {
             hostDevice = null
-            if(state == BluetoothProfile.STATE_DISCONNECTED)
-            {
+            if (state == BluetoothProfile.STATE_DISCONNECTED) {
                 disconnectListener?.invoke()
             }
 
@@ -146,24 +155,31 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
 
     override fun onAppStatusChanged(pluggedDevice: BluetoothDevice?, registered: Boolean) {
         super.onAppStatusChanged(pluggedDevice, registered)
-        if(registered)
-        {
-        var pairedDevices = btHid?.getDevicesMatchingConnectionStates(intArrayOf(BluetoothProfile.STATE_CONNECTING,BluetoothProfile.STATE_CONNECTED,BluetoothProfile.STATE_DISCONNECTED,BluetoothProfile.STATE_DISCONNECTING))
-        Log.d("paired d", "paired devices are : $pairedDevices")
-        Log.d("paired d","${btHid?.getConnectionState(pairedDevices?.get(0))}")
-        mpluggedDevice = pluggedDevice
-            if(btHid?.getConnectionState(pluggedDevice)==0 && pluggedDevice!= null && autoPairFlag ==true)
-        {
-            btHid?.connect(pluggedDevice)
-            //hostDevice.toString()
+        if (registered) {
+            var pairedDevices = btHid?.getDevicesMatchingConnectionStates(
+                intArrayOf(
+                    BluetoothProfile.STATE_CONNECTING,
+                    BluetoothProfile.STATE_CONNECTED,
+                    BluetoothProfile.STATE_DISCONNECTED,
+                    BluetoothProfile.STATE_DISCONNECTING
+                )
+            )
+            Log.d("paired d", "paired devices are : $pairedDevices")
+            if (pairedDevices?.size != 0) {
+                Log.d("paired d", "${btHid?.getConnectionState(pairedDevices?.get(0))}")
+            }else{
+                return
+            }
+
+            mpluggedDevice = pluggedDevice
+            if (btHid?.getConnectionState(pluggedDevice) == 0 && pluggedDevice != null && autoPairFlag == true) {
+                btHid?.connect(pluggedDevice)
+                //hostDevice.toString()
 
 
-        }
-
-
-        else if(btHid?.getConnectionState(pairedDevices?.get(0))==0 && autoPairFlag==true)
-            {
-                Log.i("ddaaqq","sssS"
+            } else if (btHid?.getConnectionState(pairedDevices?.get(0)) == 0 && autoPairFlag == true) {
+                Log.i(
+                    "ddaaqq", "sssS"
                 )
                 btHid?.connect(pairedDevices?.get(0))
             }
@@ -176,16 +192,10 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
 //            LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
 
 
-
-
-
         }
 
 
     }
-
-
-
 
 
     /*************/
@@ -203,7 +213,6 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
             DescriptorCollection.MOUSE_KEYBOARD_COMBO
         )
     }
-
 
 
     private val qosOut by lazy {
