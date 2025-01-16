@@ -12,6 +12,4 @@ class CustomGestureDetector(context: Context, internal var mListener: GestureDet
         val consume = if (mListener != null) mListener!!.onTouchEvent(ev) else false
         return consume || super.onTouchEvent(ev)
     }
-
-
 }

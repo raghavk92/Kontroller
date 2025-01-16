@@ -3,11 +3,11 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 31
     defaultConfig {
         applicationId "com.github.roarappstudio.btkontroller"
-        minSdkVersion 28
-        targetSdkVersion 28
+        minSdkVersion 29
+        targetSdkVersion 31
         versionCode 2
         versionName "0.0.2"
     }
@@ -37,10 +37,15 @@ android {
 }
 
 dependencies {
+
+    implementation 'net.yslibrary.keyboardvisibilityevent:keyboardvisibilityevent:3.0.0-RC2'
+
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     implementation "org.jetbrains.anko:anko-commons:$anko_version"
     implementation "org.jetbrains.anko:anko-sdk25:$anko_version"
     implementation 'com.chibatching.kotpref:kotpref:2.6.0'
     implementation 'com.android.support:localbroadcastmanager:28.0.0'
+
+
 
 }

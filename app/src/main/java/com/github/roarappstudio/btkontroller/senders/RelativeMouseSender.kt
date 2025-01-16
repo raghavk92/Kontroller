@@ -18,6 +18,9 @@ open class RelativeMouseSender(
     var previoushscroll :Int =0
 
 
+    var leftClick = false
+    var rightClick = false
+
     protected open fun sendMouse() {
         if (!hidDevice.sendReport(host, ScrollableTrackpadMouseReport.ID, mouseReport.bytes)) {
             Log.e(TAG, "Report wasn't sent")
@@ -37,9 +40,6 @@ open class RelativeMouseSender(
         sendMouse()
         mouseReport.leftButton = false
         sendMouse()
-//        Timer().schedule(20L) {
-//
-//        }
     }
     fun sendDoubleTapClick() {
         mouseReport.leftButton = true
@@ -54,79 +54,81 @@ open class RelativeMouseSender(
                     mouseReport.leftButton = false
                     sendMouse()
                 }
-
-
-
-
             }
         }
     }
 
-
-
     fun sendLeftClickOn() {
-        mouseReport.leftButton = true
-        sendMouse()
-
-
+        if(!leftClick) {
+            mouseReport.reset()
+            mouseReport.leftButton = true
+            sendMouse()
+            leftClick=true
+        }
     }
     fun sendLeftClickOff() {
-        mouseReport.leftButton = false
-        sendMouse()
+        if(leftClick) {
+            mouseReport.reset()
+            mouseReport.leftButton = false
+            sendMouse()
+            leftClick=false
+        }
 
     }
     fun sendRightClick() {
-        mouseReport.rightButton = true
-        sendMouse()
-        Timer().schedule(50L) {
-            mouseReport.rightButton= false
-            sendMouse()
-        }
+        mouseReport.reset()
+        sendRightClickOn()
+        Thread.sleep(50)
+        sendRightClickOff()
     }
 
-    fun sendScroll(vscroll:Int,hscroll:Int){
+    fun sendRelXY(dx: Int, dy: Int){
+        mouseReport.setRelXY(dx,dy)
+        hidDevice.sendReport(host, 4, mouseReport.bytes)
+    }
 
+    fun sendScroll(
+        vscroll:Int,hscroll:Int){
+
+        mouseReport.reset()
         var hscrollmutable=0
         var vscrollmutable =0
 
         hscrollmutable=hscroll
         vscrollmutable= vscroll
 
-//        var dhscroll= hscrollmutable-previoushscroll
-//        var dvscroll= vscrollmutable-previousvscroll
-//
-//        dhscroll = Math.abs(dhscroll)
-//        dvscroll = Math.abs(dvscroll)
-//        if(dvscroll>=dhscroll)
-//        {
-//            hscrollmutable=0
-//
-//        }
-//        else
-//        {
-//            vscrollmutable=0
-//        }
+
+        if(hscrollmutable > 127) hscrollmutable=127
+        if(vscrollmutable > 127) vscrollmutable=127
+        if(hscrollmutable < -127) hscrollmutable=-127
+        if(vscrollmutable < -127) vscrollmutable=-127
+
         var vs:Int =(vscrollmutable)
         var hs:Int =(hscrollmutable)
-        Log.i("vscroll ",vscroll.toString())
-        Log.i("vs ",vs.toString())
-        Log.i("hscroll ",hscroll.toString())
-        Log.i("hs ",hs.toString())
-
 
         mouseReport.vScroll=vs.toByte()
         mouseReport.hScroll= hs.toByte()
 
         sendMouse()
-
-//        previousvscroll=-1*vscroll
-//        previoushscroll=hscroll
-
-
     }
 
+    fun sendRightClickOff() {
+        if(rightClick) {
+            mouseReport.reset()
+            mouseReport.rightButton = false
+            sendMouse()
+            rightClick=false
+        }
+    }
 
-
+    fun sendRightClickOn() {
+        if(!rightClick) {
+            mouseReport.reset()
+            mouseReport.rightButton = true
+            sendMouse()
+            rightClick=true
+        }
+    }
 
     companion object {
         const val TAG = "TrackPadSender"
