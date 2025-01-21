@@ -1,15 +1,19 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.kotlin_version = '1.3.21'
+    ext.kotlin_version = '2.0.20' // '1.7.20'
     ext.anko_version='0.10.8'
 
     repositories {
         google()
+        maven {
+            allowInsecureProtocol = true
+            url = uri("http://maven.xdja.com:8081/nexus3/repository/aliyun/")
+        }
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.4.1'
+        classpath 'com.android.tools.build:gradle:8.2.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -18,13 +22,28 @@ buildscript {
 }
 
 allprojects {
-    repositories {
+    repositories {//
         google()
+        maven {
+            allowInsecureProtocol = true
+            url = uri("http://maven.xdja.com:8081/nexus3/repository/aliyun/") //org/jetbrains/anko/")
+        }
         jcenter()
-        
     }
 }
 
 task clean(type: Delete) {
     delete rootProject.buildDir
+}
+
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            project.android {
+                if (namespace == null) {
+                    namespace project.group
+                }
+            }
+        }
+    }
 }

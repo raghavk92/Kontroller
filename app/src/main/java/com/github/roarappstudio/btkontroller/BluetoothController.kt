@@ -14,26 +14,26 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
 
 
     override fun onSetReport(device: BluetoothDevice?, type: Byte, id: Byte, data: ByteArray?) {
-        Log.i("setfirst","setfirst")
+        Log.i(TAG,"setfirst")
         super.onSetReport(device, type, id, data)
-        Log.i("setreport","this $device and $type and $id and $data")
+        Log.i(TAG,"this $device and $type and $id and $data")
 
     }
 
 
     override fun onGetReport(device: BluetoothDevice?, type: Byte, id: Byte, bufferSize: Int) {
 
-        Log.i("getbefore", "first")
+        Log.i(TAG, "first")
         super.onGetReport(device, type, id, bufferSize)
 
-        Log.i("get", "second")
+        Log.i(TAG, "second")
             if (type == BluetoothHidDevice.REPORT_TYPE_FEATURE) {
                 featureReport.wheelResolutionMultiplier = true
                 featureReport.acPanResolutionMultiplier = true
-                Log.i("getbthid","$btHid")
+                Log.i(TAG,"$btHid")
 
                  var wasrs=btHid?.replyReport(device, type, FeatureReport.ID, featureReport.bytes)
-                Log.i("replysuccess flag ",wasrs.toString())
+                Log.i(TAG,"replysuccess flag "+wasrs.toString())
             }
 
 
@@ -149,24 +149,23 @@ object BluetoothController: BluetoothHidDevice.Callback(), BluetoothProfile.Serv
         if(registered)
         {
         var pairedDevices = btHid?.getDevicesMatchingConnectionStates(intArrayOf(BluetoothProfile.STATE_CONNECTING,BluetoothProfile.STATE_CONNECTED,BluetoothProfile.STATE_DISCONNECTED,BluetoothProfile.STATE_DISCONNECTING))
-        Log.d("paired d", "paired devices are : $pairedDevices")
-        Log.d("paired d","${btHid?.getConnectionState(pairedDevices?.get(0))}")
+        Log.d(TAG, "paired devices are : $pairedDevices")
+        //Log.d("paired d","${btHid?.getConnectionState(pairedDevices?.get(0))}")
         mpluggedDevice = pluggedDevice
-            if(btHid?.getConnectionState(pluggedDevice)==0 && pluggedDevice!= null && autoPairFlag ==true)
+        if(btHid?.getConnectionState(pluggedDevice)==0 && pluggedDevice!= null && autoPairFlag ==true)
         {
             btHid?.connect(pluggedDevice)
             //hostDevice.toString()
-
-
         }
-
-
-        else if(btHid?.getConnectionState(pairedDevices?.get(0))==0 && autoPairFlag==true)
-            {
-                Log.i("ddaaqq","sssS"
-                )
-                btHid?.connect(pairedDevices?.get(0))
-            }
+        else if(pairedDevices != null && pairedDevices.size > 0 && btHid?.getConnectionState(pairedDevices?.get(0))==0 && autoPairFlag)
+        {
+            Log.i(TAG,"sssS"
+            )
+            btHid?.connect(pairedDevices?.get(0))
+        }
+        else {
+            Log.i(TAG, "none")
+        }
 
 //            val intent = Intent("CUSTOM_ACTION")
 //            intent.putExtra("DATE", Date().toString())

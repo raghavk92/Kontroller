@@ -4,7 +4,7 @@ import kotlin.experimental.and
 import kotlin.experimental.or
 
 @Suppress("EXPERIMENTAL_FEATURE_WARNING")
-inline class FeatureReport (
+class FeatureReport (
     val bytes: ByteArray = ByteArray(1) {0}
 ) {
 

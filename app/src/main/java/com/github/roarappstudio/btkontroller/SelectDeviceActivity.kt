@@ -417,9 +417,9 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
 
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-                with(sharedPref.edit())
+                with(sharedPref?.edit())
                 {
-                    putBoolean(getString(R.string.screen_on_flag), false)
+                    this!!.putBoolean(getString(R.string.screen_on_flag), false)
                     commit()
                 }
 
@@ -429,7 +429,7 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
                 item.isChecked=true
                 window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-                with(sharedPref.edit())
+                with(sharedPref!!.edit())
                 {
                     putBoolean(getString(R.string.screen_on_flag), true)
                     commit()
@@ -446,7 +446,7 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
                 item.isChecked = false
                 BluetoothController.autoPairFlag=false
 
-                with(sharedPref.edit())
+                with(sharedPref!!.edit())
                 {
                     putBoolean(getString(R.string.auto_pair_flag), BluetoothController.autoPairFlag)
                     commit()
@@ -462,7 +462,7 @@ class SelectDeviceActivity: Activity(),KeyEvent.Callback {
                     BluetoothController.btHid?.connect(BluetoothController.mpluggedDevice)
                     //hostDevice.toString()
                 }
-                with(sharedPref.edit())
+                with(sharedPref!!.edit())
                 {
                     putBoolean(getString(R.string.auto_pair_flag), BluetoothController.autoPairFlag)
                     commit()
